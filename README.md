@@ -1,4 +1,4 @@
-# Configuration Fedora 36/37
+# Configuration Fedora 35/36/37
 ## Drivers
 
 * Install Nvidia drivers + CUDA
@@ -7,6 +7,16 @@
 sudo dnf config-manager --add-repo https://developer.download.nvidia.com/compute/cuda/repos/fedora35/x86_64/cuda-fedora35.repo
 sudo dnf clean all
 sudo dnf -y module install nvidia-driver:latest-dkms
+sudo dnf -y install cuda
+```
+* Install CUDA only
+
+[https://rpmfusion.org/Howto/CUDA](https://rpmfusion.org/Howto/CUDA)
+
+```
+sudo dnf config-manager --add-repo https://developer.download.nvidia.com/compute/cuda/repos/fedora35/x86_64/cuda-fedora35.repo
+sudo dnf clean all
+sudo dnf module disable nvidia-driver
 sudo dnf -y install cuda
 ```
 
@@ -25,4 +35,9 @@ sudo systemctl start logid.service
 ```
 sudo dnf install git zsh vim
 sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+cp config/.zshrc ~
+```
+* Shell aliases
+```
+alias upall='sudo dnf update --refresh -y && flatpak update -y'
 ```
