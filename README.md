@@ -37,15 +37,12 @@ sudo dnf install git zsh vim
 sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 cp config/.zshrc ~
 ```
-* Shell aliases
-```
-alias upall='sudo dnf update --refresh -y && flatpak update -y'
-```
-* DNF aliases
+## Shell aliases
+### DNF aliases
 #### .zshrc
 
 ```
-alias dnf.upgrade="sudo dnf upgrade --assumeyes && flatpak update --assumeyes && flatpak remove --unused"
+alias dnf.upgrade="sudo dnf upgrade --refrash --assumeyes && flatpak update --assumeyes && flatpak remove --unused"
 alias dnf.install="sudo dnf install"
 alias dnf.remove="sudo dnf remove"
 alias dnf.search="sudo dnf --cacheonly search"
