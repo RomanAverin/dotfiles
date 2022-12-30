@@ -41,3 +41,51 @@ cp config/.zshrc ~
 ```
 alias upall='sudo dnf update --refresh -y && flatpak update -y'
 ```
+* DNF aliases
+#### .zshrc
+
+```
+alias dnf.upgrade="sudo dnf upgrade --assumeyes && flatpak update --assumeyes && flatpak remove --unused"
+alias dnf.install="sudo dnf install"
+alias dnf.remove="sudo dnf remove"
+alias dnf.search="sudo dnf --cacheonly search"
+alias dnf.provides="sudo dnf --cacheonly provides"
+alias dnf.list_installed="sudo dnf --cacheonly list installed"
+alias dnf.repolist="sudo dnf --cacheonly repolist"
+alias dnf.list_package_files="sudo dnf --cacheonly repoquery --list"
+alias dnf.history_list="sudo dnf --cacheonly history list --reverse"
+alias dnf.history_info="sudo dnf --cacheonly history info"
+alias dnf.requires="sudo dnf --cacheonly repoquery --requires --resolve"
+alias dnf.info="sudo dnf --cacheonly info"
+alias dnf.whatrequires="sudo dnf repoquery --installed --whatrequires"
+alias dnf.repo_disable="sudo dnf config-manager --set-disabled"
+```
+#### /etc/sudoers.d/40-nopasswd
+```
+# dnf.upgrade
+%wheel ALL = NOPASSWD: /usr/bin/dnf upgrade --assumeyes
+# dnf.search
+%wheel ALL = NOPASSWD: /usr/bin/dnf --cacheonly search *
+# dnf.provides
+%wheel ALL = NOPASSWD: /usr/bin/dnf --cacheonly provides *
+# dnf.list_installed
+%wheel ALL = NOPASSWD: /usr/bin/dnf --cacheonly list installed
+# dnf.repolist
+%wheel ALL = NOPASSWD: /usr/bin/dnf --cacheonly repolist
+# dnf.list_package_files
+%wheel ALL = NOPASSWD: /usr/bin/dnf --cacheonly repoquery --list
+%wheel ALL = NOPASSWD: /usr/bin/dnf --cacheonly repoquery --list *
+# dnf.history_list
+%wheel ALL = NOPASSWD: /usr/bin/dnf --cacheonly history list --reverse
+# dnf.history_info
+%wheel ALL = NOPASSWD: /usr/bin/dnf --cacheonly history info
+%wheel ALL = NOPASSWD: /usr/bin/dnf --cacheonly history info *
+# dnf.requires
+%wheel ALL = NOPASSWD: /usr/bin/dnf --cacheonly repoquery --requires --resolve
+%wheel ALL = NOPASSWD: /usr/bin/dnf --cacheonly repoquery --requires --resolve *
+# dnf.info
+%wheel ALL = NOPASSWD: /usr/bin/dnf --cacheonly info
+%wheel ALL = NOPASSWD: /usr/bin/dnf --cacheonly info *
+# dnf.whatrequires
+%wheel ALL = NOPASSWD: /usr/bin/dnf repoquery --installed --whatrequires *
+``` 
