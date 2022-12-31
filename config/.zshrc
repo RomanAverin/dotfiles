@@ -99,7 +99,21 @@ source $ZSH/oh-my-zsh.sh
 # Example aliases
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
-alias upall='sudo dnf update --refresh -y && flatpak update -y'
+### DNF
+alias dnf.upgrade="sudo dnf upgrade --assumeyes && flatpak update --assumeyes && flatpak remove --unused"
+alias dnf.install="sudo dnf install"
+alias dnf.remove="sudo dnf remove"
+alias dnf.search="sudo dnf --cacheonly search"
+alias dnf.provides="sudo dnf --cacheonly provides"
+alias dnf.list_installed="sudo dnf --cacheonly list installed"
+alias dnf.repolist="sudo dnf --cacheonly repolist"
+alias dnf.list_package_files="sudo dnf --cacheonly repoquery --list"
+alias dnf.history_list="sudo dnf --cacheonly history list --reverse"
+alias dnf.history_info="sudo dnf --cacheonly history info"
+alias dnf.requires="sudo dnf --cacheonly repoquery --requires --resolve"
+alias dnf.info="sudo dnf --cacheonly info"
+alias dnf.whatrequires="sudo dnf repoquery --installed --whatrequires"
+alias dnf.repo_disable="sudo dnf config-manager --set-disabled"
 #
 #
 
