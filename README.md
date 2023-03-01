@@ -10,6 +10,12 @@ sudo dnf remove xorg-x11-drv-nouveau
 sudo echo "blacklist nouveau" >> /etc/modprobe.d/blacklist.conf
 
 ```
+* Module options
+
+```
+sudo cp config/nvidia.conf /etc/modprobe.d/
+```
+
 * Add change boot options for kernel 
 
 ```
