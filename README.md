@@ -14,6 +14,7 @@ sudo echo "blacklist nouveau" >> /etc/modprobe.d/blacklist.conf
 
 ```
 sudo cp config/nvidia.conf /etc/modprobe.d/
+sudo chown root:root /etc/modprobe.d/nvidia.conf
 ```
 
 * Add change boot options for kernel 
