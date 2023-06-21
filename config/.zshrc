@@ -55,6 +55,7 @@ fi
 
 # Aliases
 alias zshconfig="vim ~/.zshrc"
+alias flushdns="sudo systemd-resolve --flush-caches"
 ### DNF
 alias dnf.upgrade="sudo dnf upgrade --refresh --assumeyes && flatpak update --assumeyes && flatpak remove --unused"
 alias dnf.install="sudo dnf install"
@@ -75,6 +76,10 @@ alias dnf.repo_disable="sudo dnf config-manager --set-disabled"
 if [[ "$XDG_SESSION_TYPE" == "wayland" ]]; then
     export MOZ_ENABLE_WAYLAND=1
 fi
+
+# Environment variables
+export UID=$(id -u) 
+export GID=$(id -g)
 
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
