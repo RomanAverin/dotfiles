@@ -32,7 +32,7 @@ COMPLETION_WAITING_DOTS="true"
 # DISABLE_UNTRACKED_FILES_DIRTY="true"
 
 # Plug-ins
-plugins=(git docker docker-compose pip brew rust)
+plugins=(git docker docker-compose pip brew rust poetry)
 
 source $ZSH/oh-my-zsh.sh
 
@@ -56,6 +56,9 @@ fi
 # Aliases
 alias zshconfig="vim ~/.zshrc"
 alias flushdns="sudo systemd-resolve --flush-caches"
+alias compose="podman-compose"
+alias show_use_ports="sudo lsof -i -P -n | grep LISTEN"
+alias wezterm='flatpak run org.wezfurlong.wezterm'
 ### DNF
 alias dnf.upgrade="sudo dnf upgrade --refresh --assumeyes && flatpak update --assumeyes && flatpak remove --unused"
 alias dnf.install="sudo dnf install"
@@ -80,6 +83,8 @@ fi
 # Environment variables
 export UID=$(id -u) 
 export GID=$(id -g)
+export XDG_CONFIG_HOME=$HOME/.config
+
 
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
