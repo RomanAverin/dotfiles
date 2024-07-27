@@ -1,7 +1,8 @@
 # Configuration Fedora 36/37
+
 ## Drivers
 
-* Logitech drivers and config
+- Logitech drivers and config
 
 ```
 sudo dnf install logiops
@@ -10,16 +11,22 @@ sudo chown root:root /etc/logid.cfg
 sudo systemctl enable logid.service
 sudo systemctl start logid.service
 ```
+
 ## Environment
 
-* Install zsh + ohmyzsh
+- Install zsh + ohmyzsh + antigen
+
 ```
 sudo dnf install git zsh vim
 sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+curl -L git.io/antigen > antigen.zsh
 cp config/.zshrc ~
 ```
+
 ## Shell aliases
+
 ### DNF aliases
+
 #### .zshrc
 
 ```
@@ -38,7 +45,9 @@ alias dnf.info="sudo dnf --cacheonly info"
 alias dnf.whatrequires="sudo dnf repoquery --installed --whatrequires"
 alias dnf.repo_disable="sudo dnf config-manager --set-disabled"
 ```
+
 #### /etc/sudoers.d/40-nopasswd
+
 ```
 # dnf.upgrade
 %wheel ALL = NOPASSWD: /usr/bin/dnf upgrade --assumeyes
@@ -66,4 +75,5 @@ alias dnf.repo_disable="sudo dnf config-manager --set-disabled"
 %wheel ALL = NOPASSWD: /usr/bin/dnf --cacheonly info *
 # dnf.whatrequires
 %wheel ALL = NOPASSWD: /usr/bin/dnf repoquery --installed --whatrequires *
-``` 
+```
+
