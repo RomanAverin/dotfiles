@@ -31,8 +31,19 @@ COMPLETION_WAITING_DOTS="true"
 # much, much faster.
 # DISABLE_UNTRACKED_FILES_DIRTY="true"
 
+# Antigen 
+source ~/antigen.zsh
+# Load the oh-my-zsh's library.
+antigen use oh-my-zsh
+antigen bundle zsh-users/zsh-syntax-highlighting
+antigen bundle zsh-users/zsh-autosuggestions
+antigen bundle zsh-users/zsh-completions
+# Tell Antigen that you're done.
+antigen apply
+
+
 # Plug-ins
-plugins=(git docker docker-compose pip brew rust poetry)
+plugins=(git docker docker-compose pip rust) 
 
 source $ZSH/oh-my-zsh.sh
 
@@ -54,7 +65,7 @@ fi
 # export ARCHFLAGS="-arch x86_64"
 
 # Aliases
-alias zshconfig="vim ~/.zshrc"
+alias zshconfig="nvim ~/.zshrc"
 alias flushdns="sudo systemd-resolve --flush-caches"
 alias compose="podman-compose"
 alias show_use_ports="sudo lsof -i -P -n | grep LISTEN"
