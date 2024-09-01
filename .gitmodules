@@ -1,0 +1,3 @@
+[submodule "neovim-simple-dot"]
+	path = neovim-simple-dot
+	url = https://github.com/RomanAverin/neovim-simple-dot.git
