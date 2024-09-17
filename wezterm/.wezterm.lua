@@ -2,7 +2,7 @@ local wezterm = require("wezterm")
 local act = wezterm.action
 local config = {}
 
-config.animation_fps = 60
+-- config.animation_fps = 60
 config.enable_wayland = false
 config.front_end = "WebGpu"
 
@@ -14,7 +14,7 @@ config.audible_bell = "Disabled"
 config.scrollback_lines = 3500
 config.window_padding = {
 	left = 10,
-	right = 0,
+	right = 10,
 	top = 10,
 	bottom = 5,
 }
