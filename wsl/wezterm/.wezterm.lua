@@ -1,9 +1,10 @@
 local wezterm = require("wezterm")
 local act = wezterm.action
 local config = {}
+local mux = wezterm.mux
 
-config.animation_fps = 60
-config.front_end = "WebGpu"
+-- config.animation_fps = 60
+-- config.front_end = "WebGpu"
 
 -- WSL config
 local wsl_domains = wezterm.default_wsl_domains()
@@ -29,6 +30,13 @@ config.window_padding = {
 	top = 10,
 	bottom = 5,
 }
+
+wezterm.on("gui-startup", function(window)
+	local tab, pane, window = mux.spawn_window(cmd or {})
+	local gui_window = window:gui_window()
+	gui_window:perform_action(wezterm.action.ToggleFullScreen, pane)
+end)
+
 config.quick_select_patterns = {
 	"[0-9a-f]{7,40}", -- hashes
 	"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", -- uuids
@@ -71,12 +79,12 @@ config.color_scheme = "Custom"
 --
 --
 config.font = wezterm.font({ family = "JetBrainsMono NF", weight = "ExtraLight" })
-config.font_size = 12.0
+config.font_size = 11.0
 --config.font = wezterm.font { family = 'Fira Code', weight = 'Light' }
 
 config.window_close_confirmation = "NeverPrompt"
-config.initial_cols = 180
-config.initial_rows = 50
+-- config.initial_cols = 180
+-- config.initial_rows = 50
 
 config.scrollback_lines = 10000
 
