@@ -57,7 +57,8 @@ antigen bundle zsh-users/zsh-syntax-highlighting
 antigen apply
 
 ### Aliases
-
+# Kitty ssh
+alias s="kitten ssh"
 #alias vim="nvim"
 alias ls="ls --color"
 alias zshconfig="vim ~/.zshrc"
