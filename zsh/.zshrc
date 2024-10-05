@@ -124,4 +124,7 @@ unset __conda_setup
 #export LD_LIBRARY_PATH=/usr/lib64/cuda${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
 #
 
-
+# Deno 
+. "/home/rastler/.deno/env"
+# Add deno completions to search path
+if [[ ":$FPATH:" != *":/home/rastler/.zsh/completions:"* ]]; then export FPATH="/home/rastler/.zsh/completions:$FPATH"; fi
