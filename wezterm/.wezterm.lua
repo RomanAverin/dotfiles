@@ -2,7 +2,7 @@ local wezterm = require("wezterm")
 local act = wezterm.action
 local config = {}
 
--- config.animation_fps = 60
+config.animation_fps = 60
 config.enable_wayland = false
 config.front_end = "WebGpu"
 
@@ -15,7 +15,7 @@ config.scrollback_lines = 3500
 config.window_padding = {
 	left = 10,
 	right = 10,
-	top = 10,
+	top = 0,
 	bottom = 5,
 }
 config.quick_select_patterns = {
@@ -392,7 +392,7 @@ config.window_frame = {
 }
 
 -- Cursor --
-config.default_cursor_style = "BlinkingBlock"
+config.default_cursor_style = "BlinkingBar"
 config.cursor_blink_rate = 500
 config.cursor_blink_ease_in = "Constant"
 config.cursor_blink_ease_out = "Constant"
