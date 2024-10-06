@@ -128,3 +128,14 @@ if [[ ":$FPATH:" != *":/home/rastler/.zsh/completions:"* ]]; then export FPATH="
 
 # Set up fzf key bindings and fuzzy completion
 source <(fzf --zsh)
+# Fzf settings
+# https://vitormv.github.io/fzf-themes#eyJib3JkZXJTdHlsZSI6InJvdW5kZWQiLCJib3JkZXJMYWJlbCI6ImZ6ZiIsImJvcmRlckxhYmVsUG9zaXRpb24iOjAsInByZXZpZXdCb3JkZXJTdHlsZSI6InJvdW5kZWQiLCJwYWRkaW5nIjoiMCIsIm1hcmdpbiI6IjAiLCJwcm9tcHQiOiI+ICIsIm1hcmtlciI6Ij4iLCJwb2ludGVyIjoi4peGIiwic2VwYXJhdG9yIjoi4pSAIiwic2Nyb2xsYmFyIjoi4pSCIiwibGF5b3V0IjoiZGVmYXVsdCIsImluZm8iOiJyaWdodCIsImNvbG9ycyI6ImZnOiNlMmUyZTMsZmcrOiNkMGQwZDAsYmc6IzIyMjMyNyxiZys6IzIyMjMyNyxobDojNWY4N2FmLGhsKzojNWZkN2ZmLGluZm86I2FmYWY4NyxtYXJrZXI6IzllZDA3Mixwcm9tcHQ6I2ZjNWQ3YyxzcGlubmVyOiM3NmNjZTAscG9pbnRlcjojYWY1ZmZmLGhlYWRlcjojODdhZmFmLGJvcmRlcjojNDU0NTQ1LHNlcGFyYXRvcjojNGU0ZTRlLHNjcm9sbGJhcjojMGMwYzBjLGxhYmVsOiNhZWFlYWUscXVlcnk6I2Q5ZDlkOSJ9
+export FZF_DEFAULT_OPTS=$FZF_DEFAULT_OPTS'
+  --color=fg:#e2e2e3,fg+:#d0d0d0,bg:#222327,bg+:#222327
+  --color=hl:#5f87af,hl+:#5fd7ff,info:#afaf87,marker:#9ed072
+  --color=prompt:#fc5d7c,spinner:#76cce0,pointer:#af5fff,header:#87afaf
+  --color=border:#454545,separator:#4e4e4e,scrollbar:#0c0c0c,label:#aeaeae
+  --color=query:#d9d9d9
+  --border="rounded" --border-label="fzf" --border-label-pos="0" --preview-window="border-rounded"
+  --prompt="> " --marker=">" --pointer="◆" --separator="─"
+  --scrollbar="│" --info="right"'
