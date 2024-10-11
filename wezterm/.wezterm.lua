@@ -184,7 +184,7 @@ end)
 -- Key bindings
 -- See https://wezfurlong.org/wezterm/config/lua/keyassignment/
 --
-config.leader = { key = "a", mods = "CTRL", timeout_milliseconds = 1000 }
+config.leader = { key = ";", mods = "CTRL", timeout_milliseconds = 1000 }
 
 config.keys = {
 	-- show launcher
