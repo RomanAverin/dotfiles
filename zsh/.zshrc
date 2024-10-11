@@ -6,6 +6,12 @@ SAVEHIST=100000
 setopt SHARE_HISTORY
 setopt HIST_IGNORE_SPACE
 setopt HIST_IGNORE_DUPS
+setopt HIST_FIND_NO_DUPS
+setopt HIST_SAVE_NO_DUPS
+
+### Bind keys
+bindkey '^A' beginning-of-line
+bindkey '^E' end-of-line
 
 ### Environment variables 
 
