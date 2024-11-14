@@ -40,7 +40,6 @@ HYPHEN_INSENSITIVE="true"
 zstyle ':omz:update' frequency 3	# how often to auto-update (in days)
 zstyle ':omz:update' mode auto      	# update automatically without asking
 COMPLETION_WAITING_DOTS="true"
-plugins=(git docker docker-compose pip rust zsh-autosuggestions cp)
 source $ZSH/oh-my-zsh.sh
 
 
@@ -48,10 +47,10 @@ source $ZSH/oh-my-zsh.sh
 source ~/antigen.zsh
 
 # Load the oh-my-zsh's library.
-antigen use oh-my-zsh
+antigen use ohmyzsh/ohmyzsh
 
 # Bundles from the default repo (robbyrussell's oh-my-zsh).
-antigen bundle command-not-found
+# antigen bundle command-not-found
 
 # Syntax highlighting bundle.
 antigen bundle zsh-users/zsh-syntax-highlighting
@@ -72,24 +71,26 @@ alias show_use_ports="sudo lsof -i -P -n | grep LISTEN"
 #alias syncing_umount="~/syncing.sh umount"
 alias invokeai_run="/home/rastler/invokeai/invoke.sh"
 
+### Enable zsh plugins
+plugins=(git docker docker-compose pip rust zsh-autosuggestions cp command-not-found)
+
 # Update all
-alias update_all="sudo dnf5 upgrade --refresh --assumeyes && flatpak update --assumeyes && flatpak remove --unused"
+alias update_all="sudo dnf upgrade --refresh --assumeyes && flatpak update --assumeyes && flatpak remove --unused"
 ### DNF
-alias dnf="dnf5"
-alias dnf.upgrade="sudo dnf5 upgrade --refresh --assumeyes"
-alias dnf.install="sudo dnf5 install"
-alias dnf.remove="sudo dnf5 remove"
-alias dnf.search="sudo dnf5 --cacheonly search"
-alias dnf.provides="sudo dnf5 --cacheonly provides"
-alias dnf.list_installed="sudo dnf5 --cacheonly list installed"
-alias dnf.repolist="sudo dnf5 --cacheonly repolist"
-alias dnf.list_package_files="sudo dnf5 --cacheonly repoquery --list"
-alias dnf.history_list="sudo dnf5 --cacheonly history list --reverse"
-alias dnf.history_info="sudo dnf5 --cacheonly history info"
-alias dnf.requires="sudo dnf5 --cacheonly repoquery --requires --resolve"
-alias dnf.info="sudo dnf5 --cacheonly info"
-alias dnf.whatrequires="sudo dnf5 repoquery --installed --whatrequires"
-alias dnf.repo_disable="sudo dnf5 config-manager --set-disabled"
+# alias dnf.upgrade="sudo dnf upgrade --refresh --assumeyes"
+# alias dnf.install="sudo dnf install"
+# alias dnf.remove="sudo dnf remove"
+# alias dnf.search="sudo dnf --cacheonly search"
+# alias dnf.provides="sudo dnf --cacheonly provides"
+# alias dnf.list_installed="sudo dnf --cacheonly list installed"
+# alias dnf.repolist="sudo dnf --cacheonly repolist"
+# alias dnf.list_package_files="sudo dnf --cacheonly repoquery --list"
+# alias dnf.history_list="sudo dnf --cacheonly history list --reverse"
+# alias dnf.history_info="sudo dnf --cacheonly history info"
+# alias dnf.requires="sudo dnf --cacheonly repoquery --requires --resolve"
+# alias dnf.info="sudo dnf --cacheonly info"
+# alias dnf.whatrequires="sudo dnf repoquery --installed --whatrequires"
+# alias dnf.repo_disable="sudo dnf config-manager --set-disabled"
 
 # Force set Wayland variable of Firefox
 if [[ "$XDG_SESSION_TYPE" == "wayland" ]]; then
@@ -107,21 +108,7 @@ export PATH=$HOME/Develop/go/bin:$PATH
 # Rust
 export PATH=/home/rastler/.cargo/bin:$PATH
 
-# >>> conda initialize >>>
-# !! Contents within this block are managed by 'conda init' !!
-__conda_setup="$('/home/rastler/.anaconda3/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
-if [ $? -eq 0 ]; then
-    eval "$__conda_setup"
-else
-    if [ -f "/home/rastler/.anaconda3/etc/profile.d/conda.sh" ]; then
-        . "/home/rastler/.anaconda3/etc/profile.d/conda.sh"
-    else
-        export PATH="/home/rastler/.anaconda3/bin:$PATH"
-    fi
-fi
-unset __conda_setup
-# <<< conda initialize <<<
-
+#
 # CUDA path
 #export PATH=/usr/local/cuda/bin${PATH:+:${PATH}}
 #export LD_LIBRARY_PATH=/usr/lib64/cuda${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
@@ -145,3 +132,10 @@ export FZF_DEFAULT_OPTS=$FZF_DEFAULT_OPTS'
   --border="rounded" --border-label="fzf" --border-label-pos="0" --preview-window="border-rounded"
   --prompt="> " --marker=">" --pointer="◆" --separator="─"
   --scrollbar="│" --info="right"'
+
+# bun completions
+[ -s "/home/rastler/.bun/_bun" ] && source "/home/rastler/.bun/_bun"
+
+# bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
