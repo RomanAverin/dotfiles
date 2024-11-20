@@ -3,18 +3,19 @@ local act = wezterm.action
 local config = {}
 
 config.animation_fps = 60
-config.enable_wayland = false
+-- config.enable_wayland = false
 config.front_end = "WebGpu"
-
-config.use_fancy_tab_bar = true
--- config.window_decorations = "INTEGRATED_BUTTONS"
+config.xcursor_theme = "Adwaita"
+-- config.use_fancy_tab_bar = true
+config.window_decorations = "INTEGRATED_BUTTONS"
 config.window_background_opacity = 0.98
 config.audible_bell = "Disabled"
 -- config.hide_tab_bar_if_only_one_tab = true
-config.scrollback_lines = 3500
+config.enable_scroll_bar = true
+config.scrollback_lines = 10000
 config.window_padding = {
-	left = 10,
-	right = 10,
+	left = 5,
+	right = 5,
 	top = 0,
 	bottom = 5,
 }
@@ -31,8 +32,6 @@ config.quick_select_patterns = {
 local default_scheme = wezterm.color.get_builtin_schemes()["Sonokai (Gogh)"]
 
 -- Override color scheme
---default_scheme.background = '#212121'
---default_scheme.background = '#2c2e34'
 default_scheme.cursor_bg = "#26a269"
 default_scheme.cursor_border = "#26a269"
 --default_scheme.cursor_fg = '#ffffff'
@@ -42,7 +41,7 @@ default_scheme.cursor_border = "#26a269"
 default_scheme.tab_bar = {
 	inactive_tab_edge = "#575757",
 	active_tab = {
-		bg_color = "#1f1f1f",
+		bg_color = "#241f31",
 		fg_color = "#c0bfbc",
 	},
 	inactive_tab = {
@@ -55,6 +54,35 @@ config.color_schemes = {
 	["Custom"] = default_scheme,
 }
 config.color_scheme = "Custom"
+
+-- The filled in variant of the < symbol
+local SOLID_LEFT_ARROW = wezterm.nerdfonts.pl_right_hard_divider
+
+-- The filled in variant of the > symbol
+local SOLID_RIGHT_ARROW = wezterm.nerdfonts.pl_left_hard_divider
+
+-- config.tab_bar_style = {
+-- 	active_tab_left = wezterm.format({
+-- 		{ Background = { Color = "#241f31" } },
+-- 		{ Foreground = { Color = "#c0bfbc" } },
+-- 		{ Text = SOLID_LEFT_ARROW },
+-- 	}),
+-- 	active_tab_right = wezterm.format({
+-- 		{ Background = { Color = "#241f31" } },
+-- 		{ Foreground = { Color = "#c0bfbc" } },
+-- 		{ Text = SOLID_RIGHT_ARROW },
+-- 	}),
+-- 	inactive_tab_left = wezterm.format({
+-- 		{ Background = { Color = "#434750" } },
+-- 		{ Foreground = { Color = "#808080" } },
+-- 		{ Text = SOLID_LEFT_ARROW },
+-- 	}),
+-- 	inactive_tab_right = wezterm.format({
+-- 		{ Background = { Color = "#434750" } },
+-- 		{ Foreground = { Color = "#808080" } },
+-- 		{ Text = SOLID_RIGHT_ARROW },
+-- 	}),
+-- }
 --
 --
 --
@@ -66,8 +94,6 @@ config.font_size = 12.5
 config.window_close_confirmation = "NeverPrompt"
 config.initial_cols = 180
 config.initial_rows = 50
-
-config.scrollback_lines = 10000
 
 config.inactive_pane_hsb = {
 	saturation = 0.9,
@@ -184,16 +210,20 @@ end)
 -- Key bindings
 -- See https://wezfurlong.org/wezterm/config/lua/keyassignment/
 --
-config.leader = { key = ";", mods = "CTRL", timeout_milliseconds = 1000 }
+config.leader = {
+	key = " ",
+	mods = "CTRL",
+	timeout_milliseconds = 1000,
+}
 
 config.keys = {
 	-- show launcher
-	{ key = "l", mods = "ALT", action = wezterm.action.ShowLauncher },
+	{ key = "l", mods = "LEADER", action = wezterm.action.ShowLauncher },
 
 	-- Switch to the default workspace
 	{
 		key = "y",
-		mods = "CTRL|SHIFT",
+		mods = "LEADER",
 		action = act.SwitchToWorkspace({
 			name = "default",
 		}),
@@ -202,7 +232,7 @@ config.keys = {
 	-- Switch to btop workspace
 	{
 		key = "b",
-		mods = "CTRL|SHIFT",
+		mods = "LEADER",
 		action = act.SwitchToWorkspace({
 			name = "monitoring",
 			spawn = {
@@ -212,12 +242,12 @@ config.keys = {
 	},
 
 	-- Create a new workspace with a random name and switch to it
-	{ key = "i", mods = "CTRL|SHIFT", action = act.SwitchToWorkspace },
+	{ key = "i", mods = "LEADER", action = act.SwitchToWorkspace },
 	-- Show the launcher in fuzzy selection mode and have it list all workspaces
 	-- and allow activating one.
 	{
-		key = "9",
-		mods = "ALT",
+		key = "f",
+		mods = "LEADER",
 		action = act.ShowLauncherArgs({
 			flags = "FUZZY|WORKSPACES",
 		}),
@@ -225,8 +255,8 @@ config.keys = {
 
 	-- Prompt for a name to use for a new workspace and switch to it.
 	{
-		key = "s",
-		mods = "CTRL|SHIFT",
+		key = "r",
+		mods = "LEADER",
 		action = act.PromptInputLine({
 			description = wezterm.format({
 				{ Attribute = { Intensity = "Bold" } },
@@ -254,8 +284,8 @@ config.keys = {
 		key = "c",
 		mods = "CTRL",
 		action = wezterm.action_callback(function(window, pane)
-			selection_text = window:get_selection_text_for_pane(pane)
-			is_selection_active = string.len(selection_text) ~= 0
+			local selection_text = window:get_selection_text_for_pane(pane)
+			local is_selection_active = string.len(selection_text) ~= 0
 			if is_selection_active then
 				window:perform_action(wezterm.action.CopyTo("ClipboardAndPrimarySelection"), pane)
 			else
@@ -274,8 +304,8 @@ config.keys = {
 
 	-- Split panel to the right vetrical.
 	{
-		key = "/",
-		mods = "CTRL|ALT",
+		key = "\\",
+		mods = "LEADER",
 		action = wezterm.action.SplitPane({
 			direction = "Right",
 			size = { Percent = 50 },
@@ -284,7 +314,7 @@ config.keys = {
 	-- Split panel to the down horizontal.
 	{
 		key = "-",
-		mods = "CTRL|ALT",
+		mods = "LEADER",
 		action = wezterm.action.SplitPane({
 			direction = "Down",
 			size = { Percent = 50 },
@@ -303,44 +333,61 @@ config.keys = {
 		mods = "CTRL|SHIFT|SUPER",
 		action = wezterm.action.RotatePanes("Clockwise"),
 	},
-	{ key = "LeftArrow", mods = "LEADER", action = wezterm.action.AdjustPaneSize({ "Left", 5 }) },
-	{ key = "DownArrow", mods = "LEADER", action = wezterm.action.AdjustPaneSize({ "Down", 5 }) },
-	{ key = "UpArrow", mods = "LEADER", action = wezterm.action.AdjustPaneSize({ "Up", 5 }) },
-	{ key = "RightArrow", mods = "LEADER", action = wezterm.action.AdjustPaneSize({ "Right", 5 }) },
 
-	-- Move between panes
+	-- Resize panes
 	{
-		key = "LeftArrow",
-		mods = "ALT",
+		key = "r",
+		mods = "LEADER",
+		action = act.ActivateKeyTable({
+			name = "resize_pane",
+			one_shot = false,
+		}),
+	},
+	-- One move between panes
+	-- or use leader + a for multiple moves
+	{
+		key = "h",
+		mods = "LEADER",
 		action = act.ActivatePaneDirection("Left"),
 	},
 	{
-		key = "RightArrow",
-		mods = "ALT",
+		key = "l",
+		mods = "LEADER",
 		action = act.ActivatePaneDirection("Right"),
 	},
 	{
-		key = "UpArrow",
-		mods = "ALT",
+		key = "k",
+		mods = "LEADER",
 		action = act.ActivatePaneDirection("Up"),
 	},
 	{
-		key = "DownArrow",
-		mods = "ALT",
+		key = "j",
+		mods = "LEADER",
 		action = act.ActivatePaneDirection("Down"),
 	},
+	-- CTRL+Space, followed by 'a' will put us in activate-pane
+	-- mode until we press some other key or until 1 second (1000ms)
+	-- of time elapses
+	{
+		key = "a",
+		mods = "LEADER",
+		action = act.ActivateKeyTable({
+			name = "activate_pane",
+			timeout_milliseconds = 1000,
+		}),
+	},
 
-	-- New pane
+	-- New tab
 	{
 		key = "t",
-		mods = "CTRL|SHIFT",
+		mods = "LEADER",
 		action = wezterm.action.SpawnCommandInNewTab,
 	},
 
-	-- Close pane --
+	-- Close tab
 	{
 		key = "w",
-		mods = "CTRL|SHIFT",
+		mods = "LEADER",
 		action = wezterm.action.CloseCurrentPane({ confirm = true }),
 	},
 
@@ -361,10 +408,52 @@ config.keys = {
 	-- New Window
 	{
 		key = "n",
-		mods = "CTRL|SHIFT",
+		mods = "LEADER",
 		action = wezterm.action.SpawnCommandInNewWindow({
 			cwd = wezterm.home_dir,
 		}),
+	},
+}
+
+config.key_tables = {
+	-- Defines the keys that are active in our resize-pane mode.
+	-- Since we're likely to want to make multiple adjustments,
+	-- we made the activation one_shot=false. We therefore need
+	-- to define a key assignment for getting out of this mode.
+	-- 'resize_pane' here corresponds to the name="resize_pane" in
+	-- the key assignments above.
+	resize_pane = {
+		{ key = "LeftArrow", action = act.AdjustPaneSize({ "Left", 1 }) },
+		{ key = "h", action = act.AdjustPaneSize({ "Left", 1 }) },
+
+		{ key = "RightArrow", action = act.AdjustPaneSize({ "Right", 1 }) },
+		{ key = "l", action = act.AdjustPaneSize({ "Right", 1 }) },
+
+		{ key = "UpArrow", action = act.AdjustPaneSize({ "Up", 1 }) },
+		{ key = "k", action = act.AdjustPaneSize({ "Up", 1 }) },
+
+		{ key = "DownArrow", action = act.AdjustPaneSize({ "Down", 1 }) },
+		{ key = "j", action = act.AdjustPaneSize({ "Down", 1 }) },
+
+		-- Cancel the mode by pressing escape
+		{ key = "Escape", action = "PopKeyTable" },
+	},
+
+	-- Defines the keys that are active in our activate-pane mode.
+	-- 'activate_pane' here corresponds to the name="activate_pane" in
+	-- the key assignments above.
+	activate_pane = {
+		{ key = "LeftArrow", action = act.ActivatePaneDirection("Left") },
+		{ key = "h", action = act.ActivatePaneDirection("Left") },
+
+		{ key = "RightArrow", action = act.ActivatePaneDirection("Right") },
+		{ key = "l", action = act.ActivatePaneDirection("Right") },
+
+		{ key = "UpArrow", action = act.ActivatePaneDirection("Up") },
+		{ key = "k", action = act.ActivatePaneDirection("Up") },
+
+		{ key = "DownArrow", action = act.ActivatePaneDirection("Down") },
+		{ key = "j", action = act.ActivatePaneDirection("Down") },
 	},
 }
 
