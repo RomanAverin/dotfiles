@@ -106,7 +106,7 @@ local SOLID_RIGHT_ARROW = wezterm.nerdfonts.pl_left_hard_divider
 --
 --
 config.font = wezterm.font({ family = "JetBrainsMono NF", weight = "ExtraLight" })
-config.font_size = 12.5
+config.font_size = 11
 --config.font = wezterm.font { family = 'Fira Code', weight = 'Light' }
 
 config.window_close_confirmation = "NeverPrompt"
