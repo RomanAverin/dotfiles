@@ -3,8 +3,8 @@ local act = wezterm.action
 local config = {}
 local mux = wezterm.mux
 
--- config.animation_fps = 60
--- config.front_end = "WebGpu"
+config.animation_fps = 60
+config.front_end = "WebGpu"
 
 -- WSL config
 local wsl_domains = wezterm.default_wsl_domains()
@@ -34,7 +34,7 @@ config.window_padding = {
 wezterm.on("gui-startup", function(window)
 	local tab, pane, window = mux.spawn_window(cmd or {})
 	local gui_window = window:gui_window()
-	gui_window:perform_action(wezterm.action.ToggleFullScreen, pane)
+	-- gui_window:perform_action(wezterm.action.ToggleFullScreen, pane)
 end)
 
 config.quick_select_patterns = {
@@ -101,7 +101,7 @@ local SOLID_RIGHT_ARROW = wezterm.nerdfonts.pl_left_hard_divider
 -- 		{ Text = SOLID_RIGHT_ARROW },
 -- 	}),
 -- }
---
+-- --
 --
 --
 --
