@@ -36,3 +36,10 @@ cp config/.zshrc ~
 cd ~/.local/share/nvim/lazy/markdown-preview.nvim
 npm install
 ```
+
+- Install some utils
+
+```bash
+sudo dnf install htop fd-find fzf
+cargo install tlrc
+```
