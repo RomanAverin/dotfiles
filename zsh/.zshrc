@@ -37,8 +37,8 @@ export XDG_CONFIG_HOME=$HOME/.config
 
 ZSH_THEME="refined"
 HYPHEN_INSENSITIVE="true"
-zstyle ':omz:update' frequency 3	# how often to auto-update (in days)
-zstyle ':omz:update' mode auto      	# update automatically without asking
+zstyle ':omz:update' frequency 3 # how often to auto-update (in days)
+zstyle ':omz:update' mode auto   # update automatically without asking
 COMPLETION_WAITING_DOTS="true"
 source $ZSH/oh-my-zsh.sh
 
