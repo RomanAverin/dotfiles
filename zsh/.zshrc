@@ -43,6 +43,9 @@ COMPLETION_WAITING_DOTS="true"
 source $ZSH/oh-my-zsh.sh
 
 
+### Enable zsh plugins
+plugins=(git docker docker-compose pip rust zsh-autosuggestions cp command-not-found)
+
 ### Antigen
 source ~/antigen.zsh
 
@@ -50,7 +53,7 @@ source ~/antigen.zsh
 antigen use ohmyzsh/ohmyzsh
 
 # Bundles from the default repo (robbyrussell's oh-my-zsh).
-# antigen bundle command-not-found
+antigen bundle command-not-found
 
 # Syntax highlighting bundle.
 antigen bundle zsh-users/zsh-syntax-highlighting
@@ -71,26 +74,9 @@ alias show_use_ports="sudo lsof -i -P -n | grep LISTEN"
 #alias syncing_umount="~/syncing.sh umount"
 alias invokeai_run="/home/rastler/invokeai/invoke.sh"
 
-### Enable zsh plugins
-plugins=(git docker docker-compose pip rust zsh-autosuggestions cp command-not-found)
 
 # Update all
 alias update_all="sudo dnf upgrade --refresh --assumeyes && flatpak update --assumeyes && flatpak remove --unused"
-### DNF
-# alias dnf.upgrade="sudo dnf upgrade --refresh --assumeyes"
-# alias dnf.install="sudo dnf install"
-# alias dnf.remove="sudo dnf remove"
-# alias dnf.search="sudo dnf --cacheonly search"
-# alias dnf.provides="sudo dnf --cacheonly provides"
-# alias dnf.list_installed="sudo dnf --cacheonly list installed"
-# alias dnf.repolist="sudo dnf --cacheonly repolist"
-# alias dnf.list_package_files="sudo dnf --cacheonly repoquery --list"
-# alias dnf.history_list="sudo dnf --cacheonly history list --reverse"
-# alias dnf.history_info="sudo dnf --cacheonly history info"
-# alias dnf.requires="sudo dnf --cacheonly repoquery --requires --resolve"
-# alias dnf.info="sudo dnf --cacheonly info"
-# alias dnf.whatrequires="sudo dnf repoquery --installed --whatrequires"
-# alias dnf.repo_disable="sudo dnf config-manager --set-disabled"
 
 # Force set Wayland variable of Firefox
 if [[ "$XDG_SESSION_TYPE" == "wayland" ]]; then
