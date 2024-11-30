@@ -14,32 +14,60 @@ sudo systemctl start logid.service
 
 ## Environment
 
-- Install zsh + ohmyzsh + antigen
+- **Install zsh and configure prompt(use zinit and powerlevel10k)**
 
 ```bash
-sudo dnf install git zsh vim
-sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
-curl -L git.io/antigen > antigen.zsh
-cp config/.zshrc ~
+sudo dnf install git zsh vim fzf stow zoxide
+git clone https://github.com/RomanAverin/dotfiles
+stow -v -R -t ~ zsh
+stow -v -R -t ~ p10k.zsh
+source ~/.zshrc
 ```
 
-- Install neovim
+To customize the prompt
+
+```bash
+p10k configure
+```
+
+- **Install neovim**
 
 ```bash
   sudo dnf install neovim
   git clone https://github.com/RomanAverin/neovim-dotfiles ~/.config/nvim
 ```
 
-- Fix markdown-preview.nvim
+- **Fix markdown-preview.nvim**
 
 ```bash
 cd ~/.local/share/nvim/lazy/markdown-preview.nvim
 npm install
 ```
 
-- Install some utils
+- **Install some utils**
 
 ```bash
-sudo dnf install htop fd-find fzf
+sudo dnf install htop fd-find
 cargo install tlrc
+```
+
+## Troubleshooting
+
+- **fzf problem**
+
+```bash
+fzf --zsh
+unknown option: --zsh
+```
+
+Install latest version of the fzf
+
+- **zsh compinit: insecure directories**
+
+  Problem with permissions
+  Fix it
+
+```bash
+compaudit | xargs chown -R "$(whoami)"
+compaudit | xargs chmod go-w
 ```
