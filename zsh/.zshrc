@@ -99,37 +99,6 @@ export XDG_CONFIG_HOME=$HOME/.config
 # Compilation flags
 # export ARCHFLAGS="-arch x86_64"
 
-### Oh My Zsh configuration
-
-# ZSH_THEME="refined"
-# HYPHEN_INSENSITIVE="true"
-# zstyle ':omz:update' frequency 3 # how often to auto-update (in days)
-# zstyle ':omz:update' mode auto   # update automatically without asking
-# COMPLETION_WAITING_DOTS="true"
-# source $ZSH/oh-my-zsh.sh
-
-
-### Enable zsh plugins
-# plugins=(git docker docker-compose pip rust zsh-autosuggestions cp command-not-found)
-
-### Antigen
-# source ~/antigen.zsh
-
-# Load theme
-# antigen theme romkatv/powerlevel10k
-
-# Load the oh-my-zsh's library.
-# antigen use ohmyzsh/ohmyzsh
-
-# Bundles from the default repo (robbyrussell's oh-my-zsh).
-# antigen bundle command-not-found
-
-# Syntax highlighting bundle.
-# antigen bundle zsh-users/zsh-syntax-highlighting
-
-# Tell Antigen that you're done.
-# antigen apply
-
 ### Aliases
 # Some alias
 alias s="wezterm ssh"
