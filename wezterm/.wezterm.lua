@@ -255,7 +255,7 @@ config.keys = {
 
 	-- Prompt for a name to use for a new workspace and switch to it.
 	{
-		key = "r",
+		key = "e",
 		mods = "LEADER",
 		action = act.PromptInputLine({
 			description = wezterm.format({
