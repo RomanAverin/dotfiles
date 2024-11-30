@@ -41,11 +41,11 @@ default_scheme.cursor_border = "#26a269"
 default_scheme.tab_bar = {
 	inactive_tab_edge = "#575757",
 	active_tab = {
-		bg_color = "#241f31",
+		bg_color = "#222327",
 		fg_color = "#c0bfbc",
 	},
 	inactive_tab = {
-		bg_color = "#434750",
+		bg_color = "#414550",
 		fg_color = "#808080",
 	},
 }
@@ -55,38 +55,6 @@ config.color_schemes = {
 }
 config.color_scheme = "Custom"
 
--- The filled in variant of the < symbol
-local SOLID_LEFT_ARROW = wezterm.nerdfonts.pl_right_hard_divider
-
--- The filled in variant of the > symbol
-local SOLID_RIGHT_ARROW = wezterm.nerdfonts.pl_left_hard_divider
-
--- config.tab_bar_style = {
--- 	active_tab_left = wezterm.format({
--- 		{ Background = { Color = "#241f31" } },
--- 		{ Foreground = { Color = "#c0bfbc" } },
--- 		{ Text = SOLID_LEFT_ARROW },
--- 	}),
--- 	active_tab_right = wezterm.format({
--- 		{ Background = { Color = "#241f31" } },
--- 		{ Foreground = { Color = "#c0bfbc" } },
--- 		{ Text = SOLID_RIGHT_ARROW },
--- 	}),
--- 	inactive_tab_left = wezterm.format({
--- 		{ Background = { Color = "#434750" } },
--- 		{ Foreground = { Color = "#808080" } },
--- 		{ Text = SOLID_LEFT_ARROW },
--- 	}),
--- 	inactive_tab_right = wezterm.format({
--- 		{ Background = { Color = "#434750" } },
--- 		{ Foreground = { Color = "#808080" } },
--- 		{ Text = SOLID_RIGHT_ARROW },
--- 	}),
--- }
---
---
---
---
 config.font = wezterm.font({ family = "JetBrainsMono NF", weight = "ExtraLight" })
 config.font_size = 12.5
 --config.font = wezterm.font { family = 'Fira Code', weight = 'Light' }
@@ -154,6 +122,17 @@ local function get_process(tab)
 end
 
 wezterm.on("format-tab-title", function(tab, tabs, panes, config, hover, max_width)
+	local background = "#414550"
+	local foreground = "#ffffff"
+
+	if tab.is_active then
+		background = "#222327"
+		foreground = "#ffffff"
+	elseif hover then
+		background = "#181819"
+		foreground = "#ffffff"
+	end
+
 	local has_unseen_output = false
 	if not tab.is_active then
 		for _, pane in ipairs(tab.panes) do
@@ -179,6 +158,8 @@ wezterm.on("format-tab-title", function(tab, tabs, panes, config, hover, max_wid
 	end
 
 	return {
+		{ Background = { Color = background } },
+		{ Foreground = { Color = foreground } },
 		{ Text = title },
 	}
 end)
