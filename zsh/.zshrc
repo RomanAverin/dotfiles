@@ -19,23 +19,29 @@ zinit ice depth=1; zinit light romkatv/powerlevel10k
 # Add in zsh plugins
 zinit light zsh-users/zsh-syntax-highlighting
 zinit light zsh-users/zsh-completions
+zinit light zdharma-continuum/history-search-multi-word
 zinit light zsh-users/zsh-autosuggestions
 zinit light Aloxaf/fzf-tab
 
 # Add in snippets
+zi snippet OMZ::lib/clipboard.zsh
+zi snippet OMZ::lib/directories.zsh
 zinit snippet OMZL::git.zsh
 zinit snippet OMZP::git
 zinit snippet OMZP::cp
 zinit snippet OMZP::sudo
 zinit snippet OMZP::pip
 zinit snippet OMZP::command-not-found
-zi ice as"completion"
-zinit snippet OMZP::docker-compose/_docker-compose
-zi ice as"completion"
-zinit snippet OMZP::docker/completions/_docker
-zi ice as"completion"
-zinit snippet OMZP::completions/_cargo
-zinit snippet OMZP::completions/_rust
+zinit snippet OMZP::dotenv
+zinit snippet OMZP::docker
+zinit snippet OMZP::docker-compose
+zinit snippet OMZP::rust
+
+# Create cache and completions dir and add to $fpath
+# for the oh-my-zsh error search plugins
+mkdir -p "$ZSH_CACHE_DIR/completions"
+(( ${fpath[(Ie)"$ZSH_CACHE_DIR/completions"]} )) || fpath=("$ZSH_CACHE_DIR/completions" $fpath)
+
 
 ### Auto completions
 # Load completions
@@ -63,13 +69,16 @@ setopt HIST_SAVE_NO_DUPS
 ### Bind keys
 bindkey '^A' beginning-of-line
 bindkey '^E' end-of-line
+bindkey '^[[A' history-search-backward
+bindkey '^[[B' history-search-forward
+bindkey '^[[1;5D' backward-word
+bindkey '^[[1;5C' forward-word
+
 bindkey '^[[1~' beginning-of-line
 bindkey '^[[4~' end-of-line
 bindkey '^[[H' beginning-of-line
 bindkey '^[[F' end-of-line
 bindkey '^[[3~' delete-char
-bindkey '^[[1;5D' backward-word
-bindkey '^[[1;5C' forward-word
 
 ### Environment variables 
 export PATH=$HOME/.local/bin:/usr/local/bin:$:/usr/local/go/bin:$PATH
