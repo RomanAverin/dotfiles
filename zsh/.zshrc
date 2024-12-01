@@ -101,7 +101,9 @@ export XDG_CONFIG_HOME=$HOME/.config
 
 ### Aliases
 # Some alias
-alias s="wezterm ssh"
+function s() {
+  wezterm cli spawn --domain-name SSH:$1
+}
 alias ls="ls --color"
 alias zshconfig="vim ~/.zshrc"
 alias flushdns="sudo systemd-resolve --flush-caches"
