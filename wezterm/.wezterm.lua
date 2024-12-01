@@ -11,7 +11,17 @@ config.window_decorations = "INTEGRATED_BUTTONS"
 config.window_background_opacity = 0.98
 config.audible_bell = "Disabled"
 -- config.hide_tab_bar_if_only_one_tab = true
-config.enable_scroll_bar = true
+
+-- Visual bell
+config.audible_bell = "Disabled"
+config.visual_bell = {
+	target = "CursorColor",
+	fade_in_function = "EaseIn",
+	fade_in_duration_ms = 150,
+	fade_out_function = "EaseOut",
+	fade_out_duration_ms = 300,
+}
+
 config.scrollback_lines = 10000
 config.window_padding = {
 	left = 5,
