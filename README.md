@@ -1,4 +1,25 @@
-# Install on the Fedora
+# My Fedora linux configuration
+
+## Wezterm key bind
+
+**Leader** key is the **ctrl + space** key
+
+| conbination | command                                                    |
+| ----------- | ---------------------------------------------------------- |
+| Leader + c  | copy section to clipboard                                  |
+| Leader + v  | paste section from clipboard                               |
+| Leader + t  | new tab                                                    |
+| Leader + w  | close current tab\pane                                     |
+| Leader + n  | new window                                                 |
+| Leader + -  | split window horizontal                                    |
+| Leader + \  | split window vertical                                      |
+| Leader + l  | luncher                                                    |
+| Leader + s  | new workspace with random name                             |
+| Leader + f  | fuzzy find workspace                                       |
+| Leader + e  | rename workspace                                           |
+| Leader + r  | resize mode for the pane (hjkl or arrow key to resize)     |
+| Leader + a  | move mode for the pane (hjkl or arrow key to move between) |
+| Leader + i  | itentity pane/tab                                          |
 
 ## Drivers
 
