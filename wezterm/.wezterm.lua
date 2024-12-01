@@ -223,7 +223,7 @@ config.keys = {
 	},
 
 	-- Create a new workspace with a random name and switch to it
-	{ key = "i", mods = "LEADER", action = act.SwitchToWorkspace },
+	{ key = "s", mods = "LEADER", action = act.SwitchToWorkspace },
 	-- Show the launcher in fuzzy selection mode and have it list all workspaces
 	-- and allow activating one.
 	{
@@ -380,8 +380,8 @@ config.keys = {
 	},
 	-- Itentity panel ---
 	{
-		key = "I",
-		mods = "CTRL|SHIFT",
+		key = "i",
+		mods = "LEADER",
 		action = wezterm.action.PaneSelect({
 			show_pane_ids = true,
 		}),
