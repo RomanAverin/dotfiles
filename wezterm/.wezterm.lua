@@ -8,7 +8,7 @@ config.front_end = "WebGpu"
 config.xcursor_theme = "Adwaita"
 -- config.use_fancy_tab_bar = true
 config.window_decorations = "INTEGRATED_BUTTONS"
-config.window_background_opacity = 0.98
+-- config.window_background_opacity = 0.98
 config.audible_bell = "Disabled"
 -- config.hide_tab_bar_if_only_one_tab = true
 
@@ -51,12 +51,12 @@ default_scheme.cursor_border = "#26a269"
 default_scheme.tab_bar = {
 	inactive_tab_edge = "#575757",
 	active_tab = {
-		bg_color = "#222327",
-		fg_color = "#c0bfbc",
-	},
-	inactive_tab = {
 		bg_color = "#414550",
 		fg_color = "#808080",
+	},
+	inactive_tab = {
+		bg_color = "#222327",
+		fg_color = "#c0bfbc",
 	},
 }
 
@@ -132,11 +132,11 @@ local function get_process(tab)
 end
 
 wezterm.on("format-tab-title", function(tab, tabs, panes, config, hover, max_width)
-	local background = "#414550"
+	local background = "#222327"
 	local foreground = "#ffffff"
 
 	if tab.is_active then
-		background = "#222327"
+		background = "#414550"
 		foreground = "#ffffff"
 	elseif hover then
 		background = "#181819"
