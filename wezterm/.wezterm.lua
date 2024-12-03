@@ -11,7 +11,17 @@ config.window_decorations = "INTEGRATED_BUTTONS"
 config.window_background_opacity = 0.98
 config.audible_bell = "Disabled"
 -- config.hide_tab_bar_if_only_one_tab = true
-config.enable_scroll_bar = true
+
+-- Visual bell
+config.audible_bell = "Disabled"
+config.visual_bell = {
+	target = "CursorColor",
+	fade_in_function = "EaseIn",
+	fade_in_duration_ms = 150,
+	fade_out_function = "EaseOut",
+	fade_out_duration_ms = 300,
+}
+
 config.scrollback_lines = 10000
 config.window_padding = {
 	left = 5,
@@ -41,11 +51,11 @@ default_scheme.cursor_border = "#26a269"
 default_scheme.tab_bar = {
 	inactive_tab_edge = "#575757",
 	active_tab = {
-		bg_color = "#241f31",
+		bg_color = "#222327",
 		fg_color = "#c0bfbc",
 	},
 	inactive_tab = {
-		bg_color = "#434750",
+		bg_color = "#414550",
 		fg_color = "#808080",
 	},
 }
@@ -55,38 +65,6 @@ config.color_schemes = {
 }
 config.color_scheme = "Custom"
 
--- The filled in variant of the < symbol
-local SOLID_LEFT_ARROW = wezterm.nerdfonts.pl_right_hard_divider
-
--- The filled in variant of the > symbol
-local SOLID_RIGHT_ARROW = wezterm.nerdfonts.pl_left_hard_divider
-
--- config.tab_bar_style = {
--- 	active_tab_left = wezterm.format({
--- 		{ Background = { Color = "#241f31" } },
--- 		{ Foreground = { Color = "#c0bfbc" } },
--- 		{ Text = SOLID_LEFT_ARROW },
--- 	}),
--- 	active_tab_right = wezterm.format({
--- 		{ Background = { Color = "#241f31" } },
--- 		{ Foreground = { Color = "#c0bfbc" } },
--- 		{ Text = SOLID_RIGHT_ARROW },
--- 	}),
--- 	inactive_tab_left = wezterm.format({
--- 		{ Background = { Color = "#434750" } },
--- 		{ Foreground = { Color = "#808080" } },
--- 		{ Text = SOLID_LEFT_ARROW },
--- 	}),
--- 	inactive_tab_right = wezterm.format({
--- 		{ Background = { Color = "#434750" } },
--- 		{ Foreground = { Color = "#808080" } },
--- 		{ Text = SOLID_RIGHT_ARROW },
--- 	}),
--- }
---
---
---
---
 config.font = wezterm.font({ family = "JetBrainsMono NF", weight = "ExtraLight" })
 config.font_size = 12.5
 --config.font = wezterm.font { family = 'Fira Code', weight = 'Light' }
@@ -154,6 +132,17 @@ local function get_process(tab)
 end
 
 wezterm.on("format-tab-title", function(tab, tabs, panes, config, hover, max_width)
+	local background = "#414550"
+	local foreground = "#ffffff"
+
+	if tab.is_active then
+		background = "#222327"
+		foreground = "#ffffff"
+	elseif hover then
+		background = "#181819"
+		foreground = "#ffffff"
+	end
+
 	local has_unseen_output = false
 	if not tab.is_active then
 		for _, pane in ipairs(tab.panes) do
@@ -179,6 +168,8 @@ wezterm.on("format-tab-title", function(tab, tabs, panes, config, hover, max_wid
 	end
 
 	return {
+		{ Background = { Color = background } },
+		{ Foreground = { Color = foreground } },
 		{ Text = title },
 	}
 end)
@@ -198,13 +189,95 @@ wezterm.on("format-window-title", function(tab, pane, tabs, panes, config)
 end)
 
 wezterm.on("update-right-status", function(window, pane)
-	local active_workspace = window:active_workspace()
-	local name = window:active_key_table()
-	if name then
-		name = "TABLE: " .. name
+	-- Each element holds the text for a cell in a "powerline" style << fade
+	local cells = {}
+
+	local cwd_uri = pane:get_current_working_dir()
+	if cwd_uri then
+		local hostname = ""
+		if type(cwd_uri) == "userdata" then
+			-- Running on a newer version of wezterm and we have
+			-- a URL object here, making this simple!
+
+			hostname = cwd_uri.host or wezterm.hostname()
+		else
+			-- an older version of wezterm, 20230712-072601-f4abf8fd or earlier,
+			-- which doesn't have the Url object
+			cwd_uri = cwd_uri:sub(8)
+			local slash = cwd_uri:find("/")
+			if slash then
+				hostname = cwd_uri:sub(1, slash - 1)
+				-- and extract the cwd from the uri, decoding %-encoding
+			end
+		end
+		-- Remove the domain name portion of the hostname
+		local dot = hostname:find("[.]")
+		if dot then
+			hostname = hostname:sub(1, dot - 1)
+		end
+		if hostname == "" then
+			hostname = wezterm.hostname()
+		end
+
+		table.insert(cells, hostname)
 	end
-	local workspace_prompt = string.format("Workspace: %s %s", active_workspace, name or "")
-	window:set_right_status(workspace_prompt)
+
+	-- Workspace entry
+	local active_workspace = window:active_workspace()
+	local table_name = window:active_key_table()
+	-- Active key table
+	if table_name then
+		table_name = "mode: " .. table_name
+		table.insert(cells, table_name or "")
+	end
+
+	table.insert(cells, active_workspace)
+	-- An entry for each battery (typically 0 or 1 battery)
+	for _, b in ipairs(wezterm.battery_info()) do
+		table.insert(cells, string.format("%.0f%%", b.state_of_charge * 100))
+	end
+
+	-- The powerline < symbol
+	local LEFT_ARROW = utf8.char(0xe0b3)
+	-- The filled in variant of the < symbol
+	local SOLID_LEFT_ARROW = utf8.char(0xe0b2)
+
+	-- Color palette for the backgrounds of each cell
+	local colors = {
+		"#222327",
+		"#2c2e34",
+		"#33353f",
+		"#363944",
+		"#414550",
+	}
+
+	-- Foreground color for the text across the fade
+	local text_fg = "#c0c0c0"
+
+	-- The elements to be formatted
+	local elements = {}
+	-- How many cells have been formatted
+	local num_cells = 0
+
+	-- Translate a cell into elements
+	local function push(text, is_last)
+		local cell_no = num_cells + 1
+		table.insert(elements, { Foreground = { Color = text_fg } })
+		table.insert(elements, { Background = { Color = colors[cell_no] } })
+		table.insert(elements, { Text = " " .. text .. " " })
+		if not is_last then
+			table.insert(elements, { Foreground = { Color = colors[cell_no + 1] } })
+			table.insert(elements, { Text = SOLID_LEFT_ARROW })
+		end
+		num_cells = num_cells + 1
+	end
+
+	while #cells > 0 do
+		local cell = table.remove(cells, 1)
+		push(cell, #cells == 0)
+	end
+
+	window:set_right_status(wezterm.format(elements))
 end)
 
 -- Key bindings
@@ -242,7 +315,7 @@ config.keys = {
 	},
 
 	-- Create a new workspace with a random name and switch to it
-	{ key = "i", mods = "LEADER", action = act.SwitchToWorkspace },
+	{ key = "s", mods = "LEADER", action = act.SwitchToWorkspace },
 	-- Show the launcher in fuzzy selection mode and have it list all workspaces
 	-- and allow activating one.
 	{
@@ -255,7 +328,7 @@ config.keys = {
 
 	-- Prompt for a name to use for a new workspace and switch to it.
 	{
-		key = "r",
+		key = "e",
 		mods = "LEADER",
 		action = act.PromptInputLine({
 			description = wezterm.format({
@@ -399,8 +472,8 @@ config.keys = {
 	},
 	-- Itentity panel ---
 	{
-		key = "I",
-		mods = "CTRL|SHIFT",
+		key = "i",
+		mods = "LEADER",
 		action = wezterm.action.PaneSelect({
 			show_pane_ids = true,
 		}),
