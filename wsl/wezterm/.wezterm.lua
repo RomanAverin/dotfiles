@@ -85,7 +85,7 @@ config.color_schemes = {
 config.color_scheme = "Custom"
 
 config.font = wezterm.font({ family = "JetBrainsMono NF", weight = "ExtraLight" })
-config.font_size = 12.5
+config.font_size = 11
 --config.font = wezterm.font { family = 'Fira Code', weight = 'Light' }
 
 config.window_close_confirmation = "NeverPrompt"
@@ -566,7 +566,7 @@ config.mouse_bindings = {
 }
 
 config.window_frame = {
-	font_size = 12.0,
+	font_size = 11.0,
 	font = wezterm.font({ family = "Fira Code", weight = "Regular" }),
 	-- active_titlebar_bg = '#333333',
 	-- inactive_titlebar_bg = '#333333',
