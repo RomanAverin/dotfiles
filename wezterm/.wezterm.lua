@@ -7,7 +7,7 @@ config.animation_fps = 60
 config.front_end = "WebGpu"
 config.xcursor_theme = "Adwaita"
 -- config.use_fancy_tab_bar = true
-config.window_decorations = "INTEGRATED_BUTTONS"
+config.window_decorations = "TITLE | RESIZE"
 -- config.window_background_opacity = 0.98
 config.audible_bell = "Disabled"
 -- config.hide_tab_bar_if_only_one_tab = true
@@ -34,6 +34,7 @@ config.quick_select_patterns = {
 	"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", -- uuids
 	"https?:\\/\\/\\S+",
 }
+config.hide_tab_bar_if_only_one_tab = true
 
 --
 --  Color scheme
@@ -42,12 +43,36 @@ config.quick_select_patterns = {
 local default_scheme = wezterm.color.get_builtin_schemes()["Sonokai (Gogh)"]
 
 -- Override color scheme
-default_scheme.cursor_bg = "#26a269"
-default_scheme.cursor_border = "#26a269"
---default_scheme.cursor_fg = '#ffffff'
---default_scheme.selection_fg = 'black'
---default_scheme.selection_bg = '#79C0FF'
---default_scheme.split = '#B694DF'
+default_scheme = {
+	foreground = "#C5C8D3", -- text
+	background = "#262B31", -- bg
+	cursor_fg = "#262B31", -- bg
+	cursor_bg = "#ffffff", -- white
+	selection_fg = "#acbcc3", -- silver
+	selection_bg = "#3e4452", -- light_gray
+	split = "#444444",
+	ansi = {
+		"black",
+		"#cc6666",
+		"#A9C476",
+		"#D0AB3C",
+		"#8DB4D5",
+		"#b08cba",
+		"#749689",
+		"#acbcc3",
+	},
+	brights = {
+		"#686d75",
+		"#cc6666",
+		"#A9C476",
+		"#D0AB3C",
+		"#8DB4D5",
+		"#b08cba",
+		"#749689",
+		"#acbcc3",
+	},
+}
+
 default_scheme.tab_bar = {
 	inactive_tab_edge = "#575757",
 	active_tab = {
@@ -61,9 +86,9 @@ default_scheme.tab_bar = {
 }
 
 config.color_schemes = {
-	["Custom"] = default_scheme,
+	["Austere"] = default_scheme,
 }
-config.color_scheme = "Custom"
+config.color_scheme = "Austere"
 
 config.font = wezterm.font({ family = "JetBrainsMono NF", weight = "ExtraLight" })
 config.font_size = 12.5
@@ -185,7 +210,7 @@ wezterm.on("format-window-title", function(tab, pane, tabs, panes, config)
 		index = string.format("[%d/%d] ", tab.tab_index + 1, #tabs)
 	end
 
-	return zoomed .. index .. get_process(tab)
+	return zoomed .. index
 end)
 
 wezterm.on("update-right-status", function(window, pane)
