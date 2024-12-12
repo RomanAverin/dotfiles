@@ -86,6 +86,9 @@ config.color_scheme = "Custom"
 
 config.font = wezterm.font({ family = "JetBrainsMono NF", weight = "ExtraLight" })
 config.font_size = 11
+config.font = wezterm.font_with_fallback({
+	"Fira Code",
+})
 --config.font = wezterm.font { family = 'Fira Code', weight = 'Light' }
 
 config.window_close_confirmation = "NeverPrompt"

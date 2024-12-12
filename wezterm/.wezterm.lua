@@ -91,6 +91,9 @@ config.color_schemes = {
 config.color_scheme = "Austere"
 
 config.font = wezterm.font({ family = "JetBrainsMono NF", weight = "ExtraLight" })
+config.font = wezterm.font_with_fallback({
+	"Fira Code",
+})
 config.font_size = 12.5
 --config.font = wezterm.font { family = 'Fira Code', weight = 'Light' }
 
