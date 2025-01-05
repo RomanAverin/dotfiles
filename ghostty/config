@@ -1,0 +1,35 @@
+# Shaders
+#custom-shader = shaders/just-snow.glsl
+# Font
+#font-family = "JetBrainsMono Nerd Font Mono"
+font-family = "JetBrainsMono NF"
+font-style = "Light"
+font-size = 12.5
+# Shell 
+shell-integration = zsh 
+shell-integration-features = cursor,sudo,title
+# Window
+theme = austere
+window-height = 40
+window-width = 150
+window-save-state = always
+window-padding-balance = true
+# Keybind
+keybind = ctrl+ >n=new_window
+keybind = ctrl+ >t=new_tab
+keybind = ctrl+ >w=close_surface
+
+keybind = ctrl+ >\=new_split:right
+keybind = ctrl+ >-=new_split:down
+keybind = ctrl+ >j=goto_split:down
+keybind = ctrl+ >k=goto_split:up
+keybind = ctrl+ >h=goto_split:left
+keybind = ctrl+ >l=goto_split:right
+keybind = ctrl+ >z=toggle_split_zoom
+keybind = ctrl+ >e=equalize_splits
+
+#keybind = ctrl+c=copy_to_clipboard
+keybind = ctrl+v=paste_from_clipboard
+# Other
+copy-on-select = clipboard
+
