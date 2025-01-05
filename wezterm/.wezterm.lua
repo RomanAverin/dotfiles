@@ -81,7 +81,7 @@ default_scheme.tab_bar = {
 	},
 	inactive_tab = {
 		bg_color = "#222327",
-		fg_color = "#c0bfbc",
+		fg_color = "#575757",
 	},
 }
 
@@ -91,9 +91,9 @@ config.color_schemes = {
 config.color_scheme = "Austere"
 
 config.font = wezterm.font({ family = "JetBrainsMono NF", weight = "ExtraLight" })
-config.font = wezterm.font_with_fallback({
-	"Fira Code",
-})
+-- config.font = wezterm.font_with_fallback({
+-- 	"Fira Code",
+-- })
 config.font_size = 12.5
 --config.font = wezterm.font { family = 'Fira Code', weight = 'Light' }
 
@@ -161,7 +161,7 @@ end
 
 wezterm.on("format-tab-title", function(tab, tabs, panes, config, hover, max_width)
 	local background = "#222327"
-	local foreground = "#ffffff"
+	local foreground = "#575757"
 
 	if tab.is_active then
 		background = "#414550"
