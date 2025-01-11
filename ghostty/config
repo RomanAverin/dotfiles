@@ -14,6 +14,9 @@ window-height = 40
 window-width = 150
 window-save-state = always
 window-padding-balance = true
+auto-update = off
+term = xterm-256color
+adw-toolbar-style = raised-border 
 # Keybind
 keybind = ctrl+ >n=new_window
 keybind = ctrl+ >t=new_tab
