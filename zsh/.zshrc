@@ -36,6 +36,7 @@ zinit snippet OMZP::dotenv
 zinit snippet OMZP::docker
 zinit snippet OMZP::docker-compose
 zinit snippet OMZP::rust
+zinit snippet OMZP::virtualenv
 
 # Create cache and completions dir and add to $fpath
 # for the oh-my-zsh error search plugins
