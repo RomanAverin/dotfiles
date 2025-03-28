@@ -80,6 +80,11 @@ bindkey '^[[4~' end-of-line
 bindkey '^[[H' beginning-of-line
 bindkey '^[[F' end-of-line
 bindkey '^[[3~' delete-char
+# movement with ctrl key and vi move keys
+bindkey '^k' up-line-or-search
+bindkey '^j' down-line-or-search
+bindkey '^l' forward-word
+bindkey '^h' backward-word
 
 ### Environment variables 
 export PATH=$HOME/.local/bin:/usr/local/bin:$:/usr/local/go/bin:$PATH
