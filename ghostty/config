@@ -6,33 +6,46 @@ font-family = "JetBrainsMono NF"
 font-style = "Light"
 font-size = 12.5
 # Shell 
-shell-integration = zsh 
+shell-integration = zsh
 shell-integration-features = cursor,sudo,title
 # Window
-theme = austere
-window-height = 40
-window-width = 150
+theme = charleston 
+window-height = 50
+window-width = 180
 window-save-state = always
 window-padding-balance = true
 auto-update = off
-term = xterm-256color
-adw-toolbar-style = raised-border 
+# background-opacity = 0.95
+# background-blur = true
+# term = xterm-256color
+adw-toolbar-style = raised-border
+gtk-titlebar-hide-when-maximized = true
 # Keybind
-keybind = ctrl+ >n=new_window
+keybind = ctrl+ >r=reload_config
+keybind = ctrl+ >c=new_window
 keybind = ctrl+ >t=new_tab
 keybind = ctrl+ >w=close_surface
-
+#
 keybind = ctrl+ >\=new_split:right
 keybind = ctrl+ >-=new_split:down
-keybind = ctrl+ >j=goto_split:down
-keybind = ctrl+ >k=goto_split:up
-keybind = ctrl+ >h=goto_split:left
-keybind = ctrl+ >l=goto_split:right
+# keybind = ctrl+ >j=goto_split:down
+# keybind = ctrl+ >k=goto_split:up
+# keybind = ctrl+ >h=goto_split:left
+# keybind = ctrl+ >l=goto_split:right
 keybind = ctrl+ >z=toggle_split_zoom
 keybind = ctrl+ >e=equalize_splits
-
-#keybind = ctrl+c=copy_to_clipboard
+#
+#
+keybind = ctrl+ >h=goto_split:left
+keybind = ctrl+ >j=goto_split:bottom
+keybind = ctrl+ >k=goto_split:top
+keybind = ctrl+ >l=goto_split:right
+keybind = ctrl+ >n=next_tab
+keybind = ctrl+ >p=previous_tab
+#
+keybind = performable:ctrl+c=copy_to_clipboard
 keybind = ctrl+v=paste_from_clipboard
 # Other
-#copy-on-select = clipboard
+copy-on-select = clipboard
+app-notifications = no-clipboard-copy
 
