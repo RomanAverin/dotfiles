@@ -123,7 +123,7 @@ alias compose="podman-compose"
 alias show_use_ports="sudo lsof -i -P -n | grep LISTEN"
 #alias syncing_mount="~/syncing.sh mount"
 #alias syncing_umount="~/syncing.sh umount"
-alias invokeai_run="/home/rastler/invokeai/invoke.sh"
+alias invokeai_run="$HOME/invokeai/invoke.sh"
 
 
 # Update all
@@ -143,7 +143,7 @@ export GOPATH=$HOME/Develop/go
 export PATH=$HOME/Develop/go/bin:$PATH
 
 # Rust
-export PATH=/home/rastler/.cargo/bin:$PATH
+export PATH=$HOME/.cargo/bin:$PATH
 
 #
 # CUDA path
@@ -154,7 +154,7 @@ export PATH=/home/rastler/.cargo/bin:$PATH
 # Deno 
 . "/home/rastler/.deno/env"
 # Add deno completions to search path
-if [[ ":$FPATH:" != *":/home/rastler/.zsh/completions:"* ]]; then export FPATH="/home/rastler/.zsh/completions:$FPATH"; fi
+if [[ ":$FPATH:" != *":$HOME/.zsh/completions:"* ]]; then export FPATH="$HOME/.zsh/completions:$FPATH"; fi
 
 # Set up fzf key bindings and fuzzy completion
 source <(fzf --zsh)
@@ -175,7 +175,7 @@ export FZF_DEFAULT_OPTS=$FZF_DEFAULT_OPTS'
   --info="right"'
 
 # bun completions
-[ -s "/home/rastler/.bun/_bun" ] && source "/home/rastler/.bun/_bun"
+[ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"
 
 # bun
 export BUN_INSTALL="$HOME/.bun"
