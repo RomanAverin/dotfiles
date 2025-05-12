@@ -140,7 +140,7 @@ export PATH=$HOME/.cargo/bin:$PATH
 #
 
 # Deno 
-. "/home/rastler/.deno/env"
+. "$HOME/.deno/env"
 # Add deno completions to search path
 if [[ ":$FPATH:" != *":$HOME/.zsh/completions:"* ]]; then export FPATH="$HOME/.zsh/completions:$FPATH"; fi
 
