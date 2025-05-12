@@ -11,10 +11,15 @@ source "${ZINIT_HOME}/zinit.zsh"
 
 ### Loads plugins
 # Add in Powerlevel10k
-zinit ice depth=1; zinit light romkatv/powerlevel10k
-
+# zinit ice depth=1; zinit light romkatv/powerlevel10k
+#
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+# [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+#
+zinit ice as"command" from"gh-r" \
+          atclone"./starship init zsh > init.zsh; ./starship completions zsh > _starship" \
+          atpull"%atclone" src"init.zsh"
+zinit light starship/starship
 
 # Add in zsh plugins
 zinit light zsh-users/zsh-syntax-highlighting
