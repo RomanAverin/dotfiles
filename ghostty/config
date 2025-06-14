@@ -15,6 +15,7 @@ window-width = 180
 window-save-state = always
 window-padding-balance = true
 auto-update = off
+window-inherit-working-directory = true
 # background-opacity = 0.95
 # background-blur = true
 # term = xterm-256color
@@ -25,6 +26,9 @@ keybind = ctrl+ >r=reload_config
 keybind = ctrl+ >c=new_window
 keybind = ctrl+ >t=new_tab
 keybind = ctrl+ >w=close_surface
+keybind = ctrl+enter=toggle_split_zoom
+keybind = ctrl+shift+enter=toggle_fullscreen
+
 #
 keybind = ctrl+ >\=new_split:right
 keybind = ctrl+ >-=new_split:down
@@ -46,6 +50,6 @@ keybind = ctrl+ >p=previous_tab
 keybind = performable:ctrl+c=copy_to_clipboard
 keybind = ctrl+v=paste_from_clipboard
 # Other
-copy-on-select = clipboard
+# copy-on-select = clipboard
 app-notifications = no-clipboard-copy
 
