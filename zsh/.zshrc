@@ -1,3 +1,6 @@
+# Load secrets
+[ -f ~/.secrets ] && source ~/.secrets
+
 ### enable zinit and download zinit, if it's not there yet
 ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
 [ ! -d $ZINIT_HOME ] && mkdir -p "$(dirname $ZINIT_HOME)"
