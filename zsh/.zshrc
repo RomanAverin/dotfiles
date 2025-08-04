@@ -14,10 +14,7 @@ zinit ice as"command" from"gh-r" \
 zinit light starship/starship
 
 # Add in zsh plugins
-zinit light zsh-users/zsh-syntax-highlighting
-zinit light zsh-users/zsh-completions
 zinit light zdharma-continuum/history-search-multi-word
-zinit light zsh-users/zsh-autosuggestions
 zinit light Aloxaf/fzf-tab
 
 # Add in snippets
@@ -44,9 +41,13 @@ mkdir -p "$ZSH_CACHE_DIR/completions"
 
 ### Auto completions
 # Load completions
-autoload -Uz compinit && compinit
-
-zinit cdreplay -q
+zinit wait lucid for \
+ atinit"ZINIT[COMPINIT_OPTS]=-C; zicompinit; zicdreplay" \
+    zdharma-continuum/fast-syntax-highlighting \
+ blockf \
+    zsh-users/zsh-completions \
+ atload"!_zsh_autosuggest_start" \
+    zsh-users/zsh-autosuggestions
 
 # Completion styling
 zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
@@ -129,11 +130,6 @@ alias ollama='f() { if [ "$1" = "stop" ]; then
   fi;
 }; f'
 
-# Force set Wayland variable of Firefox
-if [[ "$XDG_SESSION_TYPE" == "wayland" ]]; then
-    export MOZ_ENABLE_WAYLAND=1
-fi
-
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
@@ -145,16 +141,10 @@ export PATH=$HOME/Develop/go/bin:$PATH
 # Rust
 export PATH=$HOME/.cargo/bin:$PATH
 
-#
-# CUDA path
-#export PATH=/usr/local/cuda/bin${PATH:+:${PATH}}
-#export LD_LIBRARY_PATH=/usr/lib64/cuda${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
-#
-
 # Deno 
 . "$HOME/.deno/env"
 # Add deno completions to search path
-if [[ ":$FPATH:" != *":$HOME/.zsh/completions:"* ]]; then export FPATH="$HOME/.zsh/completions:$FPATH"; fi
+# if [[ ":$FPATH:" != *":$HOME/.zsh/completions:"* ]]; then export FPATH="$HOME/.zsh/completions:$FPATH"; fi
 
 # Fzf settings
 export FZF_DEFAULT_COMMAND="fd --type f --strip-cwd-prefix --hidden --follow --exclude .git --exclude .cache"
@@ -178,16 +168,6 @@ eval "$(zoxide init --cmd cd zsh)"
 
 # Set up python uv autocomplion
 eval "$(uv generate-shell-completion zsh)"
-
-
-# bun completions
-[ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"
-
-# bun
-export BUN_INSTALL="$HOME/.bun"
-export PATH="$BUN_INSTALL/bin:$PATH"
-
-
 
 # Added by LM Studio CLI (lms)
 export PATH="$PATH:/home/rastler/.lmstudio/bin"
