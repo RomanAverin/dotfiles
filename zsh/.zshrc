@@ -14,12 +14,15 @@ zinit ice as"command" from"gh-r" \
 zinit light starship/starship
 
 # Add in zsh plugins
+zinit ice depth=1
 zinit light zdharma-continuum/history-search-multi-word
 zinit light Aloxaf/fzf-tab
+# zinit ice depth=1
+# zinit light jeffreytse/zsh-vi-mode
 
 # Add in snippets
-zi snippet OMZ::lib/clipboard.zsh
-zi snippet OMZ::lib/directories.zsh
+zinit snippet OMZ::lib/clipboard.zsh
+zinit snippet OMZ::lib/directories.zsh
 zinit snippet OMZL::git.zsh
 zinit snippet OMZP::git
 zinit snippet OMZP::cp
@@ -42,7 +45,7 @@ mkdir -p "$ZSH_CACHE_DIR/completions"
 ### Auto completions
 # Load completions
 zinit wait lucid for \
- atinit"ZINIT[COMPINIT_OPTS]=-C; zicompinit; zicdreplay" \
+ atinit"zicompinit; zicdreplay" \
     zdharma-continuum/fast-syntax-highlighting \
  blockf \
     zsh-users/zsh-completions \
@@ -58,13 +61,16 @@ zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'ls --color $realpath'
 
 ### History options
 HISTFILE=~/.zsh_history
-HISTSIZE=100000
-SAVEHIST=100000
+HISTSIZE=5000
+SAVEHIST=5000
 setopt SHARE_HISTORY
 setopt HIST_IGNORE_SPACE
+setopt HIST_REDUCE_BLANKS
 setopt HIST_IGNORE_DUPS
 setopt HIST_FIND_NO_DUPS
 setopt HIST_SAVE_NO_DUPS
+setopt APPEND_HISTORY
+setopt INC_APPEND_HISTORY
 
 ### Bind keys
 bindkey '^A' beginning-of-line
@@ -109,6 +115,7 @@ export XDG_CONFIG_HOME=$HOME/.config
 function s() {
   wezterm cli spawn --domain-name SSH:$1
 }
+alias remove_nvim_folders="rm -rf ~/.local/share/nvim ~/.local/state/nvim ~/.cache/nvim"
 alias ls="ls --color"
 alias zshconfig="vim ~/.zshrc"
 alias flushdns="sudo systemd-resolve --flush-caches"
@@ -116,7 +123,6 @@ alias compose="podman-compose"
 alias show_use_ports="sudo lsof -i -P -n | grep LISTEN"
 #alias syncing_mount="~/syncing.sh mount"
 #alias syncing_umount="~/syncing.sh umount"
-alias invokeai_run="$HOME/invokeai/invoke.sh"
 alias preview='nvim $(fzf -m --preview="bat --color=always {}")'
 
 # Update all
