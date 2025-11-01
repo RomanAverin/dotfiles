@@ -29,7 +29,7 @@ zinit snippet OMZP::cp
 zinit snippet OMZP::sudo
 zinit snippet OMZP::pip
 zinit snippet OMZP::command-not-found
-zinit snippet OMZP::dotenv
+# zinit snippet OMZP::dotenv
 zinit snippet OMZP::docker
 zinit snippet OMZP::docker-compose
 zinit snippet OMZP::rust
