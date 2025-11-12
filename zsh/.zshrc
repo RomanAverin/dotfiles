@@ -7,6 +7,15 @@ ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
 [ ! -d $ZINIT_HOME/.git ] && git clone https://github.com/zdharma-continuum/zinit.git "$ZINIT_HOME"
 source "${ZINIT_HOME}/zinit.zsh"
 
+# Create cache and completions dir and add to $fpath
+# for the oh-my-zsh error search plugins
+mkdir -p "$ZSH_CACHE_DIR/completions"
+(( ${fpath[(Ie)"$ZSH_CACHE_DIR/completions"]} )) || fpath=("$ZSH_CACHE_DIR/completions" $fpath)
+
+# Update completions
+autoload -Uz compinit
+compinit
+
 # Add Starship
 zinit ice as"command" from"gh-r" \
           atclone"./starship init zsh > init.zsh; ./starship completions zsh > _starship" \
@@ -36,10 +45,6 @@ zinit snippet OMZP::rust
 zinit snippet OMZP::virtualenv
 zinit snippet OMZP::uv
 
-# Create cache and completions dir and add to $fpath
-# for the oh-my-zsh error search plugins
-mkdir -p "$ZSH_CACHE_DIR/completions"
-(( ${fpath[(Ie)"$ZSH_CACHE_DIR/completions"]} )) || fpath=("$ZSH_CACHE_DIR/completions" $fpath)
 
 
 ### Auto completions
