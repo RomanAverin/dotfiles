@@ -1,5 +1,5 @@
 # Shaders
-#custom-shader = shaders/just-snow.glsl
+# custom-shader = shaders/just-snow.glsl
 # Font
 #font-family = "JetBrainsMono Nerd Font Mono"
 font-family = "JetBrainsMono NF"
@@ -17,11 +17,13 @@ window-padding-balance = true
 auto-update = off
 window-inherit-working-directory = true
 working-directory = home
-# background-opacity = 0.95
+unfocused-split-opacity = 1
+desktop-notifications = false
+background-opacity = 0.95
 # background-blur = true
-# term = xterm-256color
+term = xterm-256color
 adw-toolbar-style = raised-border
-gtk-titlebar-hide-when-maximized = true
+gtk-titlebar-hide-when-maximized = false
 gtk-single-instance = false
 # Keybind
 keybind = ctrl+ >r=reload_config
@@ -54,4 +56,5 @@ keybind = ctrl+v=paste_from_clipboard
 # Other
 # copy-on-select = clipboard
 app-notifications = no-clipboard-copy
-
+clipboard-write = allow
+clipboard-read = allow
