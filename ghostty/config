@@ -35,6 +35,7 @@ keybind = ctrl+shift+enter=toggle_fullscreen
 
 #
 keybind = ctrl+ >\=new_split:right
+keybind = ctrl+ >/=new_split:left
 keybind = ctrl+ >-=new_split:down
 # keybind = ctrl+ >j=goto_split:down
 # keybind = ctrl+ >k=goto_split:up
