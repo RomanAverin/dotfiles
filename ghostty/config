@@ -4,10 +4,11 @@
 #font-family = "JetBrainsMono Nerd Font Mono"
 font-family = "JetBrainsMono NF"
 font-style = "Light"
-font-size = 12.5
+font-size = 13.5
 # Shell
 shell-integration = zsh
-shell-integration-features = cursor,sudo,title
+# shell-integration-features = cursor,sudo,title
+shell-integration-features = true 
 # Window
 theme = charleston 
 window-height = 50
@@ -21,7 +22,7 @@ unfocused-split-opacity = 1
 desktop-notifications = false
 background-opacity = 0.95
 # background-blur = true
-term = xterm-256color
+# term = xterm-256color
 adw-toolbar-style = raised-border
 gtk-titlebar-hide-when-maximized = false
 gtk-single-instance = false
