@@ -1,19 +1,19 @@
 # Shaders
 # custom-shader = shaders/just-snow.glsl
 # Font
-#font-family = "JetBrainsMono Nerd Font Mono"
+# font-family = "JetBrainsMono Nerd Font Mono"
 font-family = "JetBrainsMono NF"
 font-style = "Light"
-font-size = 13.5
+font-size = 12.5
 # Shell
 shell-integration = zsh
-# shell-integration-features = cursor,sudo,title
-shell-integration-features = true 
+shell-integration-features = cursor,sudo,title
+# shell-integration-features = true 
 # Window
 theme = charleston 
 window-height = 50
 window-width = 180
-window-save-state = always
+# window-save-state = always
 window-padding-balance = true
 auto-update = off
 window-inherit-working-directory = true
@@ -21,7 +21,7 @@ working-directory = home
 unfocused-split-opacity = 1
 desktop-notifications = false
 background-opacity = 0.95
-# background-blur = true
+background-blur = true
 # term = xterm-256color
 adw-toolbar-style = raised-border
 gtk-titlebar-hide-when-maximized = false
@@ -60,3 +60,7 @@ keybind = ctrl+v=paste_from_clipboard
 app-notifications = no-clipboard-copy
 clipboard-write = allow
 clipboard-read = allow
+
+# Vim mode
+# command-palette-entry = title:Vim Mode, action:activate_key_table:vim
+# keybind = alt+v=activate_key_table:vim

@@ -6,11 +6,14 @@ config.animation_fps = 60
 -- config.enable_wayland = false
 config.front_end = "WebGpu"
 config.xcursor_theme = "Adwaita"
--- config.use_fancy_tab_bar = true
-config.window_decorations = "TITLE | RESIZE"
+config.use_fancy_tab_bar = true
+config.integrated_title_button_style = "Gnome"
+-- config.window_decorations = "INTEGRATED_BUTTONS|RESIZE"
+config.window_decorations = "INTEGRATED_BUTTONS"
 -- config.window_background_opacity = 0.98
 config.audible_bell = "Disabled"
 -- config.hide_tab_bar_if_only_one_tab = true
+config.term = "tmux-256color"
 
 -- Visual bell
 config.audible_bell = "Disabled"

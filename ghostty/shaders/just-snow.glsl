@@ -8,12 +8,12 @@
 #define LIGHT_SNOW // Comment this out for a blizzard
 
 #ifdef LIGHT_SNOW
-	#define LAYERS 50
+	#define LAYERS 5
 	#define DEPTH .5
 	#define WIDTH .3
 	#define SPEED .6
 #else // BLIZZARD
-	#define LAYERS 200
+	#define LAYERS 20
 	#define DEPTH .1
 	#define WIDTH .8
 	#define SPEED 1.5

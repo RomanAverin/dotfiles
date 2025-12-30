@@ -85,16 +85,6 @@ bindkey '^[[A' history-search-backward
 bindkey '^[[B' history-search-forward
 bindkey '^[[1;5D' backward-word
 bindkey '^[[1;5C' forward-word
-
-my-backward-delete-word() {
-    local WORDCHARS=$WORDCHARS
-    WORDCHARS="${WORDCHARS//\/}"  # delete / from WORDCHARS
-    WORDCHARS="${WORDCHARS//.}"   # delete . from WORDCHARS
-    zle backward-delete-word
-}
-zle -N my-backward-delete-word
-bindkey '^W' my-backward-delete-word
-
 bindkey '^[[1~' beginning-of-line
 bindkey '^[[4~' end-of-line
 bindkey '^[[H' beginning-of-line
@@ -107,7 +97,7 @@ bindkey '^l' forward-word
 bindkey '^h' backward-word
 
 ### Environment variables 
-export PATH=$HOME/.local/bin:/usr/local/bin:$:/usr/local/go/bin:$PATH
+export PATH=$HOME/.local/bin:/usr/local/bin:$PATH
 
 # Path to your oh-my-zsh installation.
 export ZSH="$HOME/.oh-my-zsh"
@@ -167,14 +157,21 @@ export PATH=$HOME/.cargo/bin:$PATH
 # Add deno completions to search path
 # if [[ ":$FPATH:" != *":$HOME/.zsh/completions:"* ]]; then export FPATH="$HOME/.zsh/completions:$FPATH"; fi
 
+# bun completions
+[ -s "/home/rastler/.bun/_bun" ] && source "/home/rastler/.bun/_bun"
+
+# bun
+[ -s "$HOME/.bun" ] && export BUN_INSTALL="$HOME/.bun" 
+[ -f "$BUN_INSTALL/bin/bun" ] && export PATH="$BUN_INSTALL/bin:$PATH"
+
 # Fzf settings
 export FZF_DEFAULT_COMMAND="fd --type f --strip-cwd-prefix --hidden --follow --exclude .git --exclude .cache"
 
-# https://vitormv.github.io/fzf-themes#eyJib3JkZXJTdHlsZSI6InJvdW5kZWQiLCJib3JkZXJMYWJlbCI6IiIsImJvcmRlckxhYmVsUG9zaXRpb24iOjAsInByZXZpZXdCb3JkZXJTdHlsZSI6InJvdW5kZWQiLCJwYWRkaW5nIjoiMCIsIm1hcmdpbiI6IjAiLCJwcm9tcHQiOiI+ICIsIm1hcmtlciI6Ij4iLCJwb2ludGVyIjoi4oebIiwic2VwYXJhdG9yIjoi4pSAIiwic2Nyb2xsYmFyIjoi4pSCIiwibGF5b3V0IjoiZGVmYXVsdCIsImluZm8iOiJyaWdodCIsImNvbG9ycyI6ImZnOiNDNUM4RDMsZmcrOiNkMGQwZDAsYmc6IzMwMzUzYixiZys6IzMwMzUzYixobDojRDBBQjNDLGhsKzojY2M2NjY2LGluZm86I2FmYWY4NyxtYXJrZXI6Izg3ZmYwMCxwcm9tcHQ6I0QwQUIzQyxzcGlubmVyOiNhZjVmZmYscG9pbnRlcjojYWY1ZmZmLGhlYWRlcjojODdhZmFmLGJvcmRlcjojNjU2NjZiLGxhYmVsOiNhZWFlYWUscXVlcnk6I2Q5ZDlkOSJ9
+# https://vitormv.github.io/fzf-themes#eyJib3JkZXJTdHlsZSI6InJvdW5kZWQiLCJib3JkZXJMYWJlbCI6IiIsImJvcmRlckxhYmVsUG9zaXRpb24iOjAsInByZXZpZXdCb3JkZXJTdHlsZSI6InJvdW5kZWQiLCJwYWRkaW5nIjoiMCIsIm1hcmdpbiI6IjAiLCJwcm9tcHQiOiI+ICIsIm1hcmtlciI6Ij4iLCJwb2ludGVyIjoi4oebIiwic2VwYXJhdG9yIjoi4pSAIiwic2Nyb2xsYmFyIjoi4pSCIiwibGF5b3V0IjoiZGVmYXVsdCIsImluZm8iOiJyaWdodCIsImNvbG9ycyI6ImZnOiNDNUM4RDMsZmcrOiNkMGQwZDAsYmc6IzMwMzUzQixiZys6IzMwMzUzQixobDojZmZmZmZmLGhsKzojZGU5MzVmLGluZm86I2FmYWY4NyxtYXJrZXI6Izg3ZmYwMCxwcm9tcHQ6I0QwQUIzQyxzcGlubmVyOiNhZjVmZmYscG9pbnRlcjojZmZmZmZmLGhlYWRlcjojODdhZmFmLGJvcmRlcjojNjU2NjZiLGxhYmVsOiNhZWFlYWUscXVlcnk6I2Q5ZDlkOSJ9
 export FZF_DEFAULT_OPTS=$FZF_DEFAULT_OPTS'
-  --color=fg:#C5C8D3,fg+:#d0d0d0,bg:#30353b,bg+:#30353b
-  --color=hl:#D0AB3C,hl+:#cc6666,info:#afaf87,marker:#87ff00
-  --color=prompt:#D0AB3C,spinner:#af5fff,pointer:#af5fff,header:#87afaf
+  --color=fg:#C5C8D3,fg+:#d0d0d0,bg:#30353B,bg+:#30353B
+  --color=hl:#ffffff,hl+:#de935f,info:#afaf87,marker:#A9C476
+  --color=prompt:#D0AB3C,spinner:#ffffff,pointer:#ffffff,header:#95739C
   --color=border:#65666b,label:#aeaeae,query:#d9d9d9
   --border="rounded" --border-label="" --preview-window="border-rounded" --prompt="> "
   --marker=">" --pointer="⇛" --separator="─" --scrollbar="│"
@@ -193,4 +190,10 @@ eval "$(uv generate-shell-completion zsh)"
 # Added by LM Studio CLI (lms)
 export PATH="$PATH:/home/rastler/.lmstudio/bin"
 # End of LM Studio CLI section
+
+# opencode
+export PATH=/home/rastler/.opencode/bin:$PATH
+
+# The next line enables shell command completion for yc.
+if [ -f '/home/rastler/yandex-cloud/completion.zsh.inc' ]; then source '/home/rastler/yandex-cloud/completion.zsh.inc'; fi
 
