@@ -1,0 +1,31 @@
+{
+  "comment": "Dotfiles Manager Configuration",
+  "default_target": "~",
+  "all_packages": [
+    "zsh",
+    "p10k.zsh",
+    "vim",
+    "tmux",
+    "wezterm",
+    "ghostty",
+    "kitty",
+    "starship",
+    "etc"
+  ],
+  "sudo_packages": ["config"],
+  "package_targets": {
+    "_comment": "Custom target directories for specific packages (optional)",
+    "_example": "~/.local/share"
+  },
+  "special_files": {
+    "etc": {
+      "files": [
+        {
+          "src": "logid.cfg",
+          "dst": "/etc/logid.cfg",
+          "sudo": true
+        }
+      ]
+    }
+  }
+}

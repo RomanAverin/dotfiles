@@ -1,0 +1,6 @@
+# Dotfiles Manager служебные директории
+.logs/
+.backups/
+__pycache__/
+*.pyc
+*.pyo

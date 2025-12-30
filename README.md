@@ -90,6 +90,69 @@ sudo dnf install htop fd-find
 cargo install tlrc
 ```
 
+## Dotfiles Manager
+
+Use the `dotfiles-manager.py` Python script to simplify dotfiles management.
+
+**Requirements**: Python 3.6+ (pre-installed on Fedora/Ubuntu)
+**Dependencies**: None! Works immediately after `git clone`
+
+### Quick Start
+
+```bash
+# Clone repository
+git clone https://github.com/RomanAverin/dotfiles
+cd dotfiles
+
+# Install configs for zsh and kitty
+./dotfiles-manager.py install zsh p10k.zsh kitty
+
+# Check status of all packages
+./dotfiles-manager.py status
+
+# Move existing configs to dotfiles (with git integration)
+./dotfiles-manager.py adopt ghostty
+
+# Remove symlinks
+./dotfiles-manager.py uninstall kitty
+
+# Install all packages
+./dotfiles-manager.py install --all
+```
+
+### Available Commands
+
+- `install` - Install symlinks for packages
+- `uninstall` - Remove symlinks
+- `restow` - Reinstall symlinks
+- `adopt` - Move existing configs to dotfiles (with git diff)
+- `status` - Show status of all packages
+- `list` - List available packages
+- `check` - Check symlink integrity
+
+### Options
+
+- `-a, --all` - Apply to all packages
+- `-n, --dry-run` - Simulate without changes
+- `-v, --verbose` - Verbose output
+- `--no-git` - Disable git integration for adopt
+
+### Safety
+
+The script always:
+- Shows preview of changes before execution
+- Requests confirmation for each operation
+- Automatically creates backup files on conflicts in `.backups/`
+- Logs all actions to `.logs/`
+- Uses dry-run before actual changes
+
+### Git Integration
+
+When using `adopt` the script automatically:
+1. Shows `git diff` with changes
+2. Prompts to create a commit
+3. Formats commit following Conventional Commits
+
 ## Troubleshooting
 
 - **fzf problem**

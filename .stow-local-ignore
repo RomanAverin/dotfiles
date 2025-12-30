@@ -27,3 +27,12 @@ _darcs
 \wsl
 \neovim-simple-dot
 
+# Dotfiles manager
+^/.logs
+^/.backups
+^/dotfiles-manager\.py
+^/DOTFILES-MANAGER\.md
+^/\.dotfiles-config\.json
+^/__pycache__
+\.pyc$
+
