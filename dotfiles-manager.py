@@ -17,6 +17,7 @@ import argparse
 import shutil
 import sys
 import os
+import json
 from datetime import datetime
 
 
@@ -606,14 +607,48 @@ class DotfilesManager:
             self._print_success("All symlinks are OK!")
 
 
-def create_config(args) -> Config:
-    """Create configuration from arguments"""
-    dotfiles_dir = Path(__file__).parent.resolve()
-    target_dir = Path.home()
+def load_config_file(dotfiles_dir: Path) -> Dict:
+    """Load configuration from .dotfiles-config.json"""
+    config_file = dotfiles_dir / '.dotfiles-config.json'
 
-    all_packages = ['zsh', 'p10k.zsh', 'vim', 'tmux', 'wezterm',
-                   'ghostty', 'kitty', 'starship', 'config']
-    sudo_packages = ['config']
+    # Default configuration if file doesn't exist
+    default_config = {
+        'default_target': '~',
+        'all_packages': ['zsh', 'p10k.zsh', 'vim', 'tmux', 'wezterm',
+                        'ghostty', 'kitty', 'starship', 'config'],
+        'sudo_packages': ['config'],
+        'package_targets': {}
+    }
+
+    if not config_file.exists():
+        return default_config
+
+    try:
+        with open(config_file, 'r') as f:
+            config = json.load(f)
+        return config
+    except (json.JSONDecodeError, IOError) as e:
+        print(f"Warning: Could not load config file: {e}", file=sys.stderr)
+        print("Using default configuration", file=sys.stderr)
+        return default_config
+
+
+def create_config(args) -> Config:
+    """Create configuration from arguments and config file"""
+    dotfiles_dir = Path(__file__).parent.resolve()
+
+    # Load configuration from file
+    config_data = load_config_file(dotfiles_dir)
+
+    # Resolve target directory (support ~ expansion)
+    default_target = config_data.get('default_target', '~')
+    if default_target.startswith('~'):
+        target_dir = Path.home() / default_target[2:] if len(default_target) > 1 else Path.home()
+    else:
+        target_dir = Path(default_target)
+
+    all_packages = config_data.get('all_packages', [])
+    sudo_packages = config_data.get('sudo_packages', [])
 
     return Config(
         dotfiles_dir=dotfiles_dir,
