@@ -4,13 +4,13 @@ Python-based dotfiles manager using GNU Stow for symlink management.
 
 ## Features
 
-- 🔗 **Automated symlink management** via GNU Stow
-- 🛡️ **Safety first** - dry-run, confirmations, automatic backups
-- 📝 **Full logging** - all operations logged to `.logs/`
-- 🔄 **Git integration** - automatic diff and commits for adopt
-- 🎨 **Colored output** - clear visual feedback
-- 📦 **Zero dependencies** - only Python 3.6+ stdlib
-- ⚙️ **JSON configuration** - externalized settings
+- **Automated symlink management** via GNU Stow
+- **Safety first** - dry-run, confirmations, automatic backups
+- **Full logging** - all operations logged to `.logs/`
+- **Git integration** - automatic diff and commits for adopt
+- **Colored output** - clear visual feedback
+- **Zero dependencies** - only Python 3.6+ stdlib
+- **JSON configuration** - externalized settings
 
 ## Requirements
 
@@ -44,6 +44,7 @@ sudo dnf install stow git
 ## Commands
 
 ### `install` - Install symlinks
+
 ```bash
 ./dotfiles-manager.py install <packages>
 ./dotfiles-manager.py install zsh p10k.zsh kitty
@@ -52,6 +53,7 @@ sudo dnf install stow git
 ```
 
 ### `uninstall` - Remove symlinks
+
 ```bash
 ./dotfiles-manager.py uninstall <packages>
 ./dotfiles-manager.py uninstall kitty
@@ -59,12 +61,14 @@ sudo dnf install stow git
 ```
 
 ### `restow` - Reinstall symlinks
+
 ```bash
 ./dotfiles-manager.py restow <packages>
 ./dotfiles-manager.py restow zsh kitty
 ```
 
 ### `adopt` - Move existing configs to dotfiles
+
 ```bash
 # Moves existing files to dotfiles repo and creates symlinks
 ./dotfiles-manager.py adopt ghostty
@@ -74,18 +78,21 @@ sudo dnf install stow git
 ```
 
 ### `status` - Show symlink status
+
 ```bash
 ./dotfiles-manager.py status                     # All packages
 ./dotfiles-manager.py status zsh kitty          # Specific packages
 ```
 
 ### `check` - Check symlink integrity
+
 ```bash
 ./dotfiles-manager.py check                      # All packages
 ./dotfiles-manager.py check zsh                 # Specific package
 ```
 
 ### `list` - List available packages
+
 ```bash
 ./dotfiles-manager.py list
 ```
@@ -111,18 +118,22 @@ dotfiles/
 ```
 
 **Example for starship:**
+
 ```
 starship/
   .config/
     starship.toml
 ```
+
 Creates: `~/.config/starship.toml`
 
 **Example for zsh:**
+
 ```
 zsh/
   .zshrc
 ```
+
 Creates: `~/.zshrc`
 
 ## Configuration
@@ -132,11 +143,7 @@ Edit `.dotfiles-config.json` to customize:
 ```json
 {
   "default_target": "~",
-  "all_packages": [
-    "zsh",
-    "kitty",
-    "starship"
-  ],
+  "all_packages": ["zsh", "kitty", "starship"],
   "sudo_packages": ["etc"],
   "package_targets": {
     "custom-pkg": "~/.local/share"
@@ -159,16 +166,21 @@ To install a package to a different location:
 ## Safety Features
 
 ### Automatic Backups
+
 Conflicting files are automatically backed up to `.backups/YYYYMMDD-HHMMSS/`
 
 ### Dry-Run Mode
+
 Always test changes first:
+
 ```bash
 ./dotfiles-manager.py install kitty --dry-run
 ```
 
 ### Interactive Confirmations
+
 Every operation requires confirmation with detailed preview:
+
 ```
 Preview: INSTALL
 Operation: install
@@ -182,11 +194,13 @@ Continue? [y/N]:
 ```
 
 ### Logging
+
 All operations logged to `.logs/stow-manager-YYYYMMDD.log`
 
 ## Examples
 
 ### Initial Setup on New System
+
 ```bash
 git clone https://github.com/yourusername/dotfiles
 cd dotfiles
@@ -199,6 +213,7 @@ cd dotfiles
 ```
 
 ### Adding New Package
+
 ```bash
 # Create package structure
 mkdir -p newpackage/.config/newpackage
@@ -212,6 +227,7 @@ cp ~/.config/newpackage/config newpackage/.config/newpackage/
 ```
 
 ### Adopting Existing Configs
+
 ```bash
 # You have ~/.config/alacritty/alacritty.yml
 # Want to move it to dotfiles
@@ -231,6 +247,7 @@ mkdir -p alacritty/.config/alacritty
 ```
 
 ### Checking Installation
+
 ```bash
 # Check all packages
 ./dotfiles-manager.py status
@@ -245,6 +262,7 @@ mkdir -p alacritty/.config/alacritty
 ```
 
 ### Updating Dotfiles
+
 ```bash
 # After editing configs in dotfiles repo
 git add .
@@ -287,17 +305,21 @@ Special handling for system files (e.g., `/etc/`):
 ## Troubleshooting
 
 ### "Package not found"
+
 Ensure package directory exists in dotfiles repo.
 
 ### Conflicts during install
+
 Use `--dry-run` to preview. Files will be backed up automatically to `.backups/`.
 
 ### Symlink integrity issues
+
 ```bash
 ./dotfiles-manager.py check
 ```
 
 ### View logs
+
 ```bash
 tail -f .logs/stow-manager-$(date +%Y%m%d).log
 ```
