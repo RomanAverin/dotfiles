@@ -31,6 +31,8 @@ _darcs
 ^/.logs
 ^/.backups
 ^/dotfiles-manager\.py
+^/DOTFILES-MANAGER\.md
+^/\.dotfiles-config\.json
 ^/__pycache__
 \.pyc$
 
