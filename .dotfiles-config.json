@@ -10,17 +10,15 @@
     "ghostty",
     "kitty",
     "starship",
-    "config"
+    "etc"
   ],
-  "sudo_packages": [
-    "config"
-  ],
+  "sudo_packages": ["config"],
   "package_targets": {
     "_comment": "Custom target directories for specific packages (optional)",
     "_example": "~/.local/share"
   },
   "special_files": {
-    "config": {
+    "etc": {
       "files": [
         {
           "src": "logid.cfg",
