@@ -12,6 +12,15 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh (Rust instllation
 cargo install tlrc
 ```
 
+## Neovim configurations in a separate repository
+
+```bash
+# Clone repository with nvim configurations
+git clone https://github.com/RomanAverin/neovim-dot ~/config/nvim
+```
+
+[https://github.com/RomanAverin/neovim-dot](https://github.com/RomanAverin/neovim-dot)
+
 ## Dotfiles Manager
 
 Use the `dotfiles-manager.py` Python script to simplify dotfiles management.
