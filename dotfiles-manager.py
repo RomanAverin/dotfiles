@@ -20,6 +20,7 @@ import json
 from datetime import datetime
 
 
+@dataclass
 class Colors:
     """ANSI escape codes for colored terminal output"""
 
@@ -42,6 +43,7 @@ class Config:
     backup_dir: Path
     all_packages: List[str]
     sudo_packages: List[str]
+    special_files: Dict[str, Dict[str, List[Dict]]]
     verbose: bool = False
 
 
@@ -58,7 +60,7 @@ class DotfilesManager:
 
     # ========== Utilities and checks ==========
 
-    def _check_dependencies(self) -> bool:
+    def check_dependencies(self) -> bool:
         """Check if stow and git are installed"""
         try:
             subprocess.run(["stow", "--version"], capture_output=True, check=True)
@@ -78,7 +80,12 @@ class DotfilesManager:
 
     def _is_valid_package(self, package: str) -> bool:
         """Validate package existence"""
-        package_dir = self.config.dotfiles_dir / package
+        # Check if package is a sudo package
+        if package in self.config.sudo_packages:
+            package_dir = self.config.dotfiles_dir / "sudo_packages" / package
+        else:
+            package_dir = self.config.dotfiles_dir / package
+
         if not package_dir.exists() or not package_dir.is_dir():
             self._print_error(
                 f"Package '{package}' not found in {self.config.dotfiles_dir}"
@@ -89,10 +96,26 @@ class DotfilesManager:
     def _check_wsl(self) -> bool:
         """Detect WSL environment"""
         try:
-            with open("/proc/version", "r") as f:
+            with open("/proc/version", "r", encoding="utf-8") as f:
                 return "microsoft" in f.read().lower()
         except FileNotFoundError:
             return False
+
+    def _parse_package_spec(self, package_spec: str) -> Tuple[str, Optional[str]]:
+        """
+        Parse package specification in format 'package:file' or just 'package'.
+
+        Returns:
+            (package_name, specific_file or None)
+
+        Examples:
+            'etc:logid.cfg' -> ('etc', 'logid.cfg')
+            'etc' -> ('etc', None)
+        """
+        if ":" in package_spec:
+            parts = package_spec.split(":", 1)
+            return (parts[0], parts[1])
+        return (package_spec, None)
 
     # ========== Colored output ==========
 
@@ -133,7 +156,12 @@ class DotfilesManager:
 
     def _get_package_files(self, package: str) -> List[Path]:
         """Get list of files in package"""
-        package_dir = self.config.dotfiles_dir / package
+        # Check if package is a sudo package
+        if package in self.config.sudo_packages:
+            package_dir = self.config.dotfiles_dir / "sudo_packages" / package
+        else:
+            package_dir = self.config.dotfiles_dir / package
+
         files = []
 
         for item in package_dir.rglob("*"):
@@ -208,7 +236,7 @@ class DotfilesManager:
                 if conflicts:
                     total_conflicts += len(conflicts)
                     self._print_warning(f"  Found conflicts: {len(conflicts)}")
-                    for target, dotfile in conflicts[:3]:  # Show first 3
+                    for target in conflicts[:3]:  # Show first 3
                         print(f"    {target}")
             else:
                 self._print_error(f"Package '{package}' - error")
@@ -259,17 +287,27 @@ class DotfilesManager:
         """Install symlinks via stow -R"""
         self._log("INFO", f"Starting install operation for: {', '.join(packages)}")
 
+        # Parse package specifications (format: package or package:file)
+        package_specs = {}  # {package_name: specific_file or None}
+        for pkg_spec in packages:
+            pkg_name, specific_file = self._parse_package_spec(pkg_spec)
+            package_specs[pkg_name] = specific_file
+
         # Validate packages
-        valid_packages = [p for p in packages if self._is_valid_package(p)]
+        valid_packages = [p for p in package_specs if self._is_valid_package(p)]
         if not valid_packages:
             return
 
-        # Dry-run for all packages
+        # Dry-run for all packages (except sudo packages)
         self._print_info("Analyzing changes...")
         dry_run_results = {}
         for package in valid_packages:
-            success, output = self._dry_run_stow("install", package)
-            dry_run_results[package] = (success, output)
+            # Sudo packages don't use stow, skip dry-run
+            if package in self.config.sudo_packages:
+                dry_run_results[package] = (True, "sudo package - no stow dry-run")
+            else:
+                success, output = self._dry_run_stow("install", package)
+                dry_run_results[package] = (success, output)
 
         # Preview
         self._show_preview("install", valid_packages, dry_run_results)
@@ -297,7 +335,8 @@ class DotfilesManager:
         for package in valid_packages:
             # Special handling for sudo packages
             if package in self.config.sudo_packages:
-                self._handle_sudo_package(package, "install")
+                specific_file = package_specs.get(package)
+                self._handle_sudo_package(package, "install", specific_file)
                 continue
 
             cmd = ["stow", "-v", "-R", "-t", str(self.config.target_dir), package]
@@ -326,17 +365,27 @@ class DotfilesManager:
         """Remove symlinks via stow -D"""
         self._log("INFO", f"Starting uninstall operation for: {', '.join(packages)}")
 
+        # Parse package specifications (format: package or package:file)
+        package_specs = {}  # {package_name: specific_file or None}
+        for pkg_spec in packages:
+            pkg_name, specific_file = self._parse_package_spec(pkg_spec)
+            package_specs[pkg_name] = specific_file
+
         # Validate packages
-        valid_packages = [p for p in packages if self._is_valid_package(p)]
+        valid_packages = [p for p in package_specs if self._is_valid_package(p)]
         if not valid_packages:
             return
 
-        # Dry-run for all packages
+        # Dry-run for all packages (except sudo packages)
         self._print_info("Analyzing changes...")
         dry_run_results = {}
         for package in valid_packages:
-            success, output = self._dry_run_stow("uninstall", package)
-            dry_run_results[package] = (success, output)
+            # Sudo packages don't use stow, skip dry-run
+            if package in self.config.sudo_packages:
+                dry_run_results[package] = (True, "sudo package - no stow dry-run")
+            else:
+                success, output = self._dry_run_stow("uninstall", package)
+                dry_run_results[package] = (success, output)
 
         # Preview
         self._show_preview("uninstall", valid_packages, dry_run_results)
@@ -355,7 +404,8 @@ class DotfilesManager:
         for package in valid_packages:
             # Special handling for sudo packages
             if package in self.config.sudo_packages:
-                self._handle_sudo_package(package, "uninstall")
+                specific_file = package_specs.get(package)
+                self._handle_sudo_package(package, "uninstall", specific_file)
                 continue
 
             cmd = ["stow", "-v", "-D", "-t", str(self.config.target_dir), package]
@@ -403,7 +453,7 @@ class DotfilesManager:
             if conflicts:
                 total_conflicts += len(conflicts)
                 print(f"\n{Colors.CYAN}{package}{Colors.RESET}:")
-                for target, dotfile in conflicts:
+                for target in conflicts:
                     print(f"  {target} -> dotfiles/{package}/...")
 
         if total_conflicts == 0:
@@ -455,56 +505,157 @@ class DotfilesManager:
 
     # ========== Special handlers ==========
 
-    def _handle_sudo_package(self, package: str, operation: str):
-        """Handle config/ package (logid.cfg -> /etc/)"""
-        if package != "config":
+    def _handle_sudo_package(
+        self, package: str, operation: str, specific_file: Optional[str] = None
+    ):
+        """
+        Handle packages with special files requiring sudo or custom installation.
+
+        Reads configuration from special_files section in .dotfiles-config.json.
+
+        Args:
+            package: Package name from sudo_packages list
+            operation: "install" or "uninstall"
+            specific_file: If provided, process only this file (e.g., 'logid.cfg')
+        """
+        # Check if package has special_files configuration
+        if package not in self.config.special_files:
+            self._print_warning(
+                f"Package '{package}' not found in special_files configuration"
+            )
             return
 
-        logid_src = self.config.dotfiles_dir / "config" / "logid.cfg"
-        logid_dst = Path("/etc/logid.cfg")
+        # Get list of files to process
+        package_config = self.config.special_files[package]
+        files_to_process = package_config.get("files", [])
 
-        if not logid_src.exists():
-            self._print_warning("config/logid.cfg not found")
+        # Filter by specific file if provided
+        if specific_file:
+            files_to_process = [
+                f for f in files_to_process if f.get("src") == specific_file
+            ]
+
+            if not files_to_process:
+                self._print_error(
+                    f"File '{specific_file}' not found in package '{package}' configuration"
+                )
+                return
+
+        if not files_to_process:
+            self._print_warning(f"No files configured for package '{package}'")
             return
 
-        if operation == "install":
-            self._print_info("Installing config/logid.cfg requires sudo...")
+        # Process each file in the package
+        for file_config in files_to_process:
+            src_relative = file_config.get("src")
+            dst_absolute = file_config.get("dst")
+            requires_sudo = file_config.get("sudo", False)
 
-            # Backup existing
-            if logid_dst.exists():
-                try:
-                    subprocess.run(
-                        ["sudo", "cp", str(logid_dst), str(logid_dst) + ".backup"],
-                        check=True,
-                    )
-                    self._print_info(f"Backup created: {logid_dst}.backup")
-                except subprocess.CalledProcessError:
-                    pass
+            # Validate configuration
+            if not src_relative or not dst_absolute:
+                self._print_error(
+                    f"Invalid file configuration in package '{package}': {file_config}"
+                )
+                continue
 
-            # Copy with sudo
+            # Build absolute paths
+            # Sudo packages are stored in sudo_packages/{package}/
+            src_path = self.config.dotfiles_dir / "sudo_packages" / package / src_relative
+            dst_path = Path(dst_absolute)
+
+            # Check if source file exists
+            if not src_path.exists():
+                self._print_error(f"Source file not found: {src_path}")
+                continue
+
+            # Execute operation
+            if operation == "install":
+                self._install_special_file(src_path, dst_path, requires_sudo, package)
+            elif operation == "uninstall":
+                self._uninstall_special_file(dst_path, requires_sudo, package)
+
+    def _install_special_file(
+        self, src: Path, dst: Path, use_sudo: bool, package: str
+    ):
+        """Install a single special file with optional sudo"""
+
+        self._print_info(f"Installing {src.name} → {dst} (sudo={use_sudo})")
+
+        # Backup existing file
+        if dst.exists():
+            backup_path = Path(str(dst) + ".backup")
             try:
-                subprocess.run(
-                    ["sudo", "cp", str(logid_src), str(logid_dst)], check=True
-                )
-                subprocess.run(
-                    ["sudo", "chown", "root:root", str(logid_dst)], check=True
-                )
-                self._print_success(f"System config installed: {logid_dst}")
-                self._log("SUCCESS", "Sudo package 'config' installed to /etc/")
-            except subprocess.CalledProcessError as e:
-                self._print_error(f"Error installing system config: {e}")
+                if use_sudo:
+                    subprocess.run(
+                        ["sudo", "cp", str(dst), str(backup_path)],
+                        check=True,
+                        capture_output=True,
+                    )
+                else:
+                    shutil.copy2(dst, backup_path)
+                self._print_info(f"Backup created: {backup_path}")
+            except (subprocess.CalledProcessError, IOError) as e:
+                self._print_warning(f"Could not create backup: {e}")
 
-        elif operation == "uninstall":
-            if logid_dst.exists():
-                if self._confirm_action(f"Remove {logid_dst}? (requires sudo)"):
-                    try:
-                        subprocess.run(["sudo", "rm", str(logid_dst)], check=True)
-                        self._print_success(f"System config removed: {logid_dst}")
-                        self._log(
-                            "SUCCESS", "Sudo package 'config' uninstalled from /etc/"
-                        )
-                    except subprocess.CalledProcessError as e:
-                        self._print_error(f"Error removing system config: {e}")
+        # Copy file
+        try:
+            if use_sudo:
+                subprocess.run(
+                    ["sudo", "cp", str(src), str(dst)],
+                    check=True,
+                    capture_output=True,
+                )
+                # Set root:root ownership for system files
+                subprocess.run(
+                    ["sudo", "chown", "root:root", str(dst)],
+                    check=True,
+                    capture_output=True,
+                )
+                self._print_success(f"System file installed: {dst}")
+                self._log("SUCCESS", f"Sudo package '{package}' installed: {src} → {dst}")
+            else:
+                shutil.copy2(src, dst)
+                self._print_success(f"File installed: {dst}")
+                self._log("SUCCESS", f"Package '{package}' installed: {src} → {dst}")
+
+        except (subprocess.CalledProcessError, IOError) as e:
+            self._print_error(f"Error installing {dst}: {e}")
+            self._log("ERROR", f"Failed to install '{package}': {e}")
+
+    def _uninstall_special_file(
+        self, dst: Path, use_sudo: bool, package: str
+    ):
+        """Uninstall a single special file with optional sudo"""
+
+        if not dst.exists():
+            self._print_info(f"File not found (already removed): {dst}")
+            return
+
+        # Confirmation prompt
+        prompt = f"Remove {dst}?"
+        if use_sudo:
+            prompt += " (requires sudo)"
+
+        if not self._confirm_action(prompt):
+            self._print_warning(f"Skipped: {dst}")
+            return
+
+        # Remove file
+        try:
+            if use_sudo:
+                subprocess.run(
+                    ["sudo", "rm", str(dst)], check=True, capture_output=True
+                )
+                self._print_success(f"System file removed: {dst}")
+                self._log("SUCCESS", f"Sudo package '{package}' uninstalled: {dst}")
+            else:
+                dst.unlink()
+                self._print_success(f"File removed: {dst}")
+                self._log("SUCCESS", f"Package '{package}' uninstalled: {dst}")
+
+        except (subprocess.CalledProcessError, OSError) as e:
+            self._print_error(f"Error removing {dst}: {e}")
+            self._log("ERROR", f"Failed to uninstall '{package}': {e}")
 
     # ========== Git integration ==========
 
@@ -520,7 +671,7 @@ class DotfilesManager:
         except subprocess.CalledProcessError:
             pass
 
-    def _git_prompt_commit(self, packages: str) -> bool:
+    def _git_prompt_commit(self, _packages: str) -> bool:
         """Prompt to create commit"""
         print()
         return self._confirm_action("Create git commit with these changes?")
@@ -564,40 +715,66 @@ class DotfilesManager:
 
         for package in packages:
             print(f"\n{Colors.CYAN}{Colors.BOLD}{package}{Colors.RESET}:")
-            package_files = self._get_package_files(package)
 
-            if not package_files:
-                self._print_warning("  Empty")
-                continue
+            # For sudo packages use special_files
+            if package in self.config.sudo_packages:
+                if package not in self.config.special_files:
+                    self._print_warning("  No configuration in special_files")
+                    continue
 
-            for rel_path in sorted(package_files):
-                target_file = self.config.target_dir / rel_path
-                dotfile = self.config.dotfiles_dir / package / rel_path
+                package_config = self.config.special_files[package]
+                files_list = package_config.get("files", [])
 
-                if target_file.is_symlink():
-                    link_target = target_file.resolve()
-                    if link_target == dotfile.resolve():
-                        print(f"  {Colors.GREEN}✓{Colors.RESET} {rel_path}")
+                if not files_list:
+                    self._print_warning("  Empty")
+                    continue
+
+                for file_entry in files_list:
+                    src_file = file_entry.get("src", "")
+                    dst_file = file_entry.get("dst", "")
+
+                    if not src_file or not dst_file:
+                        continue
+
+                    target_file = Path(dst_file)
+
+                    if target_file.exists():
+                        print(f"  {Colors.GREEN}✓{Colors.RESET} {src_file} → {dst_file}")
                     else:
+                        print(f"  {Colors.BLUE}○{Colors.RESET} {src_file} (not installed)")
+            else:
+                # Regular packages
+                package_files = self._get_package_files(package)
+
+                if not package_files:
+                    self._print_warning("  Empty")
+                    continue
+
+                for rel_path in sorted(package_files):
+                    target_file = self.config.target_dir / rel_path
+                    dotfile = self.config.dotfiles_dir / package / rel_path
+
+                    if target_file.is_symlink():
+                        link_target = target_file.resolve()
+                        if link_target == dotfile.resolve():
+                            print(f"  {Colors.GREEN}✓{Colors.RESET} {rel_path}")
+                        else:
+                            print(
+                                f"  {Colors.YELLOW}⚠{Colors.RESET} {rel_path} (wrong target)"
+                            )
+                    elif target_file.exists():
                         print(
-                            f"  {Colors.YELLOW}⚠{Colors.RESET} {rel_path} (wrong target)"
+                            f"  {Colors.RED}✗{Colors.RESET} {rel_path} (file exists, not symlink)"
                         )
-                elif target_file.exists():
-                    print(
-                        f"  {Colors.RED}✗{Colors.RESET} {rel_path} (file exists, not symlink)"
-                    )
-                else:
-                    print(f"  {Colors.BLUE}○{Colors.RESET} {rel_path} (not installed)")
+                    else:
+                        print(f"  {Colors.BLUE}○{Colors.RESET} {rel_path} (not installed)")
 
     def list_packages(self):
         """List available packages"""
         self._print_header("Available Packages")
 
-        packages = [
-            d.name
-            for d in self.config.dotfiles_dir.iterdir()
-            if d.is_dir() and not d.name.startswith(".")
-        ]
+        # Use all_packages from configuration instead of scanning
+        packages = self.config.all_packages
 
         for package in sorted(packages):
             if package in self.config.sudo_packages:
@@ -654,18 +831,36 @@ def load_config_file(dotfiles_dir: Path) -> Dict:
             "ghostty",
             "kitty",
             "starship",
-            "config",
+            "etc",
         ],
-        "sudo_packages": ["config"],
+        "sudo_packages": ["etc"],
         "package_targets": {},
+        "special_files": {},
     }
 
     if not config_file.exists():
         return default_config
 
     try:
-        with open(config_file, "r") as f:
+        with open(config_file, "r", encoding="utf-8") as f:
             config = json.load(f)
+
+        # Validate special_files
+        if "special_files" in config:
+            for pkg_name, pkg_config in config["special_files"].items():
+                if "files" not in pkg_config:
+                    print(
+                        f"Warning: Package '{pkg_name}' in special_files has no 'files' key",
+                        file=sys.stderr,
+                    )
+                else:
+                    for file_entry in pkg_config["files"]:
+                        if "src" not in file_entry or "dst" not in file_entry:
+                            print(
+                                f"Warning: Invalid file entry in '{pkg_name}': {file_entry}",
+                                file=sys.stderr,
+                            )
+
         return config
     except (json.JSONDecodeError, IOError) as e:
         print(f"Warning: Could not load config file: {e}", file=sys.stderr)
@@ -674,7 +869,7 @@ def load_config_file(dotfiles_dir: Path) -> Dict:
 
 
 def create_config(args) -> Config:
-    """Create configuration from arguments and config file"""
+    """Create configuration from arguments and configuration file"""
     dotfiles_dir = Path(__file__).parent.resolve()
 
     # Load configuration from file
@@ -691,6 +886,7 @@ def create_config(args) -> Config:
 
     all_packages = config_data.get("all_packages", [])
     sudo_packages = config_data.get("sudo_packages", [])
+    special_files = config_data.get("special_files", {})
 
     return Config(
         dotfiles_dir=dotfiles_dir,
@@ -699,6 +895,7 @@ def create_config(args) -> Config:
         backup_dir=dotfiles_dir / ".backups",
         all_packages=all_packages,
         sudo_packages=sudo_packages,
+        special_files=special_files,
         verbose=args.verbose if hasattr(args, "verbose") else False,
     )
 
@@ -794,7 +991,7 @@ Examples:
     manager = DotfilesManager(config)
 
     # Check dependencies
-    if not manager._check_dependencies():
+    if not manager.check_dependencies():
         sys.exit(1)
 
     # Execute command

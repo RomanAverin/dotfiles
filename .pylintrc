@@ -1,0 +1,28 @@
+[MASTER]
+# Specify a score threshold to be exceeded before program exits with error
+fail-under=9.0
+
+[MESSAGES CONTROL]
+# Disable specific warnings that are not relevant for this project
+disable=
+    invalid-name,  # C0103: Allow module names with hyphens (dotfiles-manager.py)
+
+[DESIGN]
+# Maximum number of attributes for a class
+max-attributes=10
+
+# Maximum number of local variables for function / method body
+max-locals=20
+
+# Maximum number of branch for function / method body
+max-branches=20
+
+# Maximum number of statements in function / method body
+max-statements=70
+
+# Maximum number of nested blocks for function / method body
+max-nested-blocks=7
+
+[FORMAT]
+# Maximum number of lines in a module
+max-module-lines=1200
