@@ -170,7 +170,7 @@ export FZF_DEFAULT_COMMAND="fd --type f --strip-cwd-prefix --hidden --follow --e
 # https://vitormv.github.io/fzf-themes#eyJib3JkZXJTdHlsZSI6InJvdW5kZWQiLCJib3JkZXJMYWJlbCI6IiIsImJvcmRlckxhYmVsUG9zaXRpb24iOjAsInByZXZpZXdCb3JkZXJTdHlsZSI6InJvdW5kZWQiLCJwYWRkaW5nIjoiMCIsIm1hcmdpbiI6IjAiLCJwcm9tcHQiOiI+ICIsIm1hcmtlciI6Ij4iLCJwb2ludGVyIjoi4oebIiwic2VwYXJhdG9yIjoi4pSAIiwic2Nyb2xsYmFyIjoi4pSCIiwibGF5b3V0IjoiZGVmYXVsdCIsImluZm8iOiJyaWdodCIsImNvbG9ycyI6ImZnOiNDNUM4RDMsZmcrOiNkMGQwZDAsYmc6IzMwMzUzQixiZys6IzMwMzUzQixobDojZmZmZmZmLGhsKzojZGU5MzVmLGluZm86I2FmYWY4NyxtYXJrZXI6Izg3ZmYwMCxwcm9tcHQ6I0QwQUIzQyxzcGlubmVyOiNhZjVmZmYscG9pbnRlcjojZmZmZmZmLGhlYWRlcjojODdhZmFmLGJvcmRlcjojNjU2NjZiLGxhYmVsOiNhZWFlYWUscXVlcnk6I2Q5ZDlkOSJ9
 export FZF_DEFAULT_OPTS=$FZF_DEFAULT_OPTS'
   --color=fg:#C5C8D3,fg+:#d0d0d0,bg:#30353B,bg+:#30353B
-  --color=hl:#ffffff,hl+:#de935f,info:#afaf87,marker:#A9C476
+  --color=hl:#EFC986,hl+:#de935f,info:#afaf87,marker:#A9C476
   --color=prompt:#D0AB3C,spinner:#ffffff,pointer:#ffffff,header:#95739C
   --color=border:#65666b,label:#aeaeae,query:#d9d9d9
   --border="rounded" --border-label="" --preview-window="border-rounded" --prompt="> "
