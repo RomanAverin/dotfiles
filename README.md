@@ -1,8 +1,8 @@
 # My dotfiles are managed by a dotfiles management system
 
-[!WARNING]
-Please be careful. You use the configurations and manager at your own risk. It is possible that something may not work as described. This tool is for internal use and is subject to rapid change.
-If you have any questions or problems, please post them in the discussions.
+> [!WARNING]
+> Please be careful. You use the configurations and manager at your own risk. It is possible that something may not work as described. This tool is for internal use and is subject to rapid change.
+> If you have any questions or problems, please post them in the discussions.
 
 ## **Install some packages (Fedora)**
 
