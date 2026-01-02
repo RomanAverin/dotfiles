@@ -1,15 +1,14 @@
-# Shaders
-# custom-shader = shaders/just-snow.glsl
-# Font
-# font-family = "JetBrainsMono Nerd Font Mono"
-font-family = "JetBrainsMono NF"
+### Font
+font-family = "JetBrainsMono Nerd Font"
 font-style = "Light"
 font-size = 12.5
-# Shell
+
+### Shell
 shell-integration = zsh
 shell-integration-features = cursor,sudo,title
 # shell-integration-features = true 
-# Window
+
+### Window
 theme = charleston 
 window-height = 50
 window-width = 180
@@ -21,41 +20,32 @@ working-directory = home
 unfocused-split-opacity = 1
 desktop-notifications = false
 background-opacity = 0.97
-# background-blur = true
-# term = xterm-256color
 adw-toolbar-style = raised-border
 gtk-titlebar-hide-when-maximized = false
 gtk-single-instance = false
-# Keybind
+
+### Keybind
 keybind = ctrl+ >r=reload_config
 keybind = ctrl+ >c=new_window
 keybind = ctrl+ >t=new_tab
 keybind = ctrl+ >w=close_surface
 keybind = ctrl+enter=toggle_split_zoom
 keybind = ctrl+shift+enter=toggle_fullscreen
-
-#
 keybind = ctrl+ >\=new_split:right
 keybind = ctrl+ >/=new_split:left
 keybind = ctrl+ >-=new_split:down
-# keybind = ctrl+ >j=goto_split:down
-# keybind = ctrl+ >k=goto_split:up
-# keybind = ctrl+ >h=goto_split:left
-# keybind = ctrl+ >l=goto_split:right
 keybind = ctrl+ >z=toggle_split_zoom
 keybind = ctrl+ >e=equalize_splits
-#
-#
 keybind = ctrl+ >h=goto_split:left
 keybind = ctrl+ >j=goto_split:bottom
 keybind = ctrl+ >k=goto_split:top
 keybind = ctrl+ >l=goto_split:right
 keybind = ctrl+ >n=next_tab
 keybind = ctrl+ >p=previous_tab
-#
 keybind = performable:ctrl+c=copy_to_clipboard
 keybind = ctrl+v=paste_from_clipboard
-# Other
+
+### Other
 # copy-on-select = clipboard
 app-notifications = no-clipboard-copy
 clipboard-write = allow
