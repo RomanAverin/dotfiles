@@ -10,9 +10,12 @@
     "ghostty",
     "kitty",
     "starship",
+    "etc",
+    "aider"
+  ],
+  "sudo_packages": [
     "etc"
   ],
-  "sudo_packages": ["etc"],
   "package_targets": {
     "_comment": "Custom target directories for specific packages (optional)",
     "_example": "~/.local/share"

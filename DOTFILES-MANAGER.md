@@ -97,6 +97,34 @@ sudo dnf install stow git
 ./dotfiles-manager.py list
 ```
 
+### `new` - Create new package
+
+```bash
+# Create package and automatically adopt existing config (recommended)
+./dotfiles-manager.py new alacritty --from ~/.config/alacritty
+
+# Create package for directory in HOME root
+./dotfiles-manager.py new aider --from ~/.aider
+
+# Create package for file in HOME root
+./dotfiles-manager.py new bashrc --from ~/.bashrc
+
+# Create empty package structure (add files manually later)
+./dotfiles-manager.py new neovim
+
+# Create sudo package
+./dotfiles-manager.py new logid --from /etc/logid.cfg --sudo
+
+# Dry-run to preview
+./dotfiles-manager.py new firefox --from ~/.mozilla/firefox --dry-run
+```
+
+**Features:**
+- Automatically detects structure type from `--from` path (XDG for `~/.config/`, simple for `~/`)
+- Creates directory structure and updates configuration
+- Optionally adopts existing files if `--from` is specified
+- No need to know about stow internals - just specify where your config is!
+
 ## Options
 
 - `-a, --all` - Apply to all packages
@@ -214,8 +242,27 @@ cd dotfiles
 
 ### Adding New Package
 
+**Recommended way (using `new` command):**
+
 ```bash
-# Create package structure
+# Automatically create structure and adopt existing config
+./dotfiles-manager.py new alacritty --from ~/.config/alacritty
+
+# For configs in HOME root
+./dotfiles-manager.py new aider --from ~/.aider
+
+# The command will:
+# 1. Detect structure type automatically (XDG for ~/.config/, simple for ~/)
+# 2. Create directory structure
+# 3. Update .dotfiles-config.json
+# 4. Adopt existing files
+# 5. Create symlinks
+```
+
+**Manual way (old method, not recommended):**
+
+```bash
+# Create package structure inside dotfiles
 mkdir -p newpackage/.config/newpackage
 cp ~/.config/newpackage/config newpackage/.config/newpackage/
 
@@ -227,6 +274,15 @@ cp ~/.config/newpackage/config newpackage/.config/newpackage/
 ```
 
 ### Adopting Existing Configs
+
+**Using `new` command (recommended):**
+
+```bash
+# One command does everything!
+./dotfiles-manager.py new alacritty --from ~/.config/alacritty
+```
+
+**Using `adopt` command (if package structure already exists):**
 
 ```bash
 # You have ~/.config/alacritty/alacritty.yml

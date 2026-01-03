@@ -93,6 +93,206 @@ class DotfilesManager:
             return False
         return True
 
+    def _validate_package_name(self, package_name: str) -> Tuple[bool, str]:
+        """
+        Validate package name for new package creation.
+
+        Returns:
+            (is_valid, error_message)
+        """
+        # Check for empty name
+        if not package_name or not package_name.strip():
+            return False, "Package name cannot be empty"
+
+        # Check for invalid characters
+        invalid_chars = ["/", "\\", " ", "\t", "\n", ":", "*", "?", '"', "<", ">", "|"]
+        for char in invalid_chars:
+            if char in package_name:
+                return False, f"Package name contains invalid character: '{char}'"
+
+        # Check for reserved names
+        reserved_names = [".", "..", ".git", ".logs", ".backups", "sudo_packages"]
+        if package_name in reserved_names:
+            return False, f"Package name '{package_name}' is reserved"
+
+        # Check for hidden files (starting with .)
+        if package_name.startswith("."):
+            return False, "Package name cannot start with '.'"
+
+        return True, ""
+
+    def _check_package_exists(self, package_name: str, is_sudo: bool) -> Tuple[bool, str]:
+        """
+        Check if package already exists (directory or in config).
+
+        Returns:
+            (exists, location_info)
+        """
+        # Check directory existence
+        if is_sudo:
+            package_dir = self.config.dotfiles_dir / "sudo_packages" / package_name
+        else:
+            package_dir = self.config.dotfiles_dir / package_name
+
+        if package_dir.exists():
+            return True, f"Directory already exists: {package_dir}"
+
+        # Check in all_packages config
+        if package_name in self.config.all_packages:
+            return True, f"Package '{package_name}' already listed in configuration"
+
+        return False, ""
+
+    def _determine_structure_from_path(self, from_path: Optional[str]) -> Tuple[str, Path]:
+        """
+        Determine package structure from --from path.
+
+        Returns:
+            (structure_type, relative_path_in_package)
+
+        structure_type: "xdg" | "simple" | "sudo"
+        """
+        if not from_path:
+            # Default to XDG if path not specified
+            return ("xdg", Path(".config"))
+
+        path = Path(from_path).expanduser()
+
+        # Determine relative path from HOME
+        try:
+            home = Path.home()
+            rel_path = path.relative_to(home)
+        except ValueError:
+            # Path not relative to HOME (e.g., /etc/)
+            return ("sudo", path)
+
+        # Analyze path
+        parts = rel_path.parts
+
+        if len(parts) > 0 and parts[0] == ".config":
+            # ~/.config/something → XDG structure
+            return ("xdg", rel_path)
+        else:
+            # ~/something → Simple structure
+            return ("simple", rel_path)
+
+    def _create_package_structure(
+        self, package_name: str, structure_type: str, relative_path: Path, dry_run: bool
+    ) -> Tuple[bool, List[Path]]:
+        """
+        Create directory structure for new package.
+
+        Returns:
+            (success, list_of_created_directories)
+        """
+        created_dirs = []
+
+        try:
+            # Determine base directory
+            if structure_type == "sudo":
+                base_dir = self.config.dotfiles_dir / "sudo_packages" / package_name
+            else:
+                base_dir = self.config.dotfiles_dir / package_name
+
+            # Determine final directory based on structure type
+            if structure_type == "xdg":
+                # XDG: package-name/.config/package-name/
+                final_dir = base_dir / ".config" / package_name
+            elif structure_type == "simple":
+                # Simple: package-name/ or package-name/relative_path/
+                if relative_path.is_absolute() or len(relative_path.parts) == 0:
+                    final_dir = base_dir
+                else:
+                    # Create parent directory for the relative path
+                    # E.g., for ~/.aider -> create package-name/.aider/
+                    final_dir = base_dir / relative_path
+            elif structure_type == "sudo":
+                # Sudo: sudo_packages/package-name/
+                final_dir = base_dir
+            else:
+                self._log("ERROR", f"Unknown structure type: {structure_type}")
+                return False, []
+
+            # Create directories
+            if not dry_run:
+                final_dir.mkdir(parents=True, exist_ok=False)
+
+                # Create .gitkeep for empty directories
+                gitkeep = final_dir / ".gitkeep"
+                gitkeep.touch()
+
+                self._log("INFO", f"Created package structure: {final_dir}")
+
+            # Collect list of created directories for output
+            if structure_type == "xdg":
+                created_dirs = [base_dir, base_dir / ".config", final_dir]
+            elif structure_type == "simple":
+                # Collect all parent directories
+                current = final_dir
+                while current != base_dir.parent:
+                    created_dirs.insert(0, current)
+                    current = current.parent
+                    if current == self.config.dotfiles_dir:
+                        break
+            else:  # sudo
+                created_dirs = [base_dir]
+
+            return True, created_dirs
+
+        except OSError as e:
+            self._log("ERROR", f"Failed to create package structure: {e}")
+            return False, []
+
+    def _update_config_file(
+        self, package_name: str, is_sudo: bool, custom_target: Optional[str], dry_run: bool
+    ) -> bool:
+        """
+        Update .dotfiles-config.json with new package.
+
+        Returns:
+            success
+        """
+        config_file = self.config.dotfiles_dir / ".dotfiles-config.json"
+
+        try:
+            # Create backup
+            if not dry_run:
+                backup_file = config_file.with_suffix(".json.backup")
+                shutil.copy2(config_file, backup_file)
+                self._log("INFO", f"Config backup created: {backup_file}")
+
+            # Load current config
+            with open(config_file, "r", encoding="utf-8") as f:
+                config_data = json.load(f)
+
+            # Add package to all_packages (at the end)
+            if package_name not in config_data.get("all_packages", []):
+                config_data.setdefault("all_packages", []).append(package_name)
+
+            # Add to sudo_packages if needed
+            if is_sudo:
+                if package_name not in config_data.get("sudo_packages", []):
+                    config_data.setdefault("sudo_packages", []).append(package_name)
+
+            # Add custom target if specified
+            if custom_target:
+                config_data.setdefault("package_targets", {})[package_name] = custom_target
+
+            # Save with proper formatting
+            if not dry_run:
+                with open(config_file, "w", encoding="utf-8") as f:
+                    json.dump(config_data, f, indent=2, ensure_ascii=False)
+                    f.write("\n")  # Add final newline
+
+                self._log("INFO", f"Updated config: {config_file}")
+
+            return True
+
+        except (json.JSONDecodeError, IOError) as e:
+            self._log("ERROR", f"Failed to update config: {e}")
+            self._print_error(f"Failed to update configuration: {e}")
+            return False
+
     def _check_wsl(self) -> bool:
         """Detect WSL environment"""
         try:
@@ -814,6 +1014,179 @@ class DotfilesManager:
         else:
             self._print_success("All symlinks are OK!")
 
+    def new(
+        self,
+        package_name: str,
+        from_path: Optional[str] = None,
+        is_sudo: bool = False,
+        custom_target: Optional[str] = None,
+        dry_run: bool = False,
+    ):
+        """
+        Create new package with directory structure and update configuration.
+
+        Args:
+            package_name: Name of the new package
+            from_path: Path to existing config (determines structure automatically)
+            is_sudo: Mark package as requiring sudo
+            custom_target: Custom target directory for this package
+            dry_run: Simulate without making changes
+        """
+        self._log("INFO", f"Starting new package creation: {package_name}")
+
+        # ========== 1. Validate package name ==========
+        self._print_info("Validating package name...")
+        is_valid, error_msg = self._validate_package_name(package_name)
+        if not is_valid:
+            self._print_error(f"Invalid package name: {error_msg}")
+            return
+
+        # ========== 2. Check if package already exists ==========
+        self._print_info("Checking if package already exists...")
+        exists, location = self._check_package_exists(package_name, is_sudo)
+        if exists:
+            self._print_error(f"Package already exists: {location}")
+            return
+
+        # ========== 3. Determine structure from path ==========
+        structure_type, relative_path = self._determine_structure_from_path(from_path)
+
+        # Override for sudo if explicitly specified
+        if is_sudo:
+            structure_type = "sudo"
+
+        # ========== 4. Show preview ==========
+        self._print_header("New Package Preview")
+
+        print(f"Package name: {Colors.CYAN}{package_name}{Colors.RESET}")
+
+        if from_path:
+            print(f"Source:       {from_path}")
+
+        # Determine structure description for display
+        if structure_type == "sudo":
+            print(f"Package type: {Colors.YELLOW}sudo package{Colors.RESET}")
+            structure_display = f"sudo_packages/{package_name}/"
+        elif structure_type == "simple":
+            print(f"Package type: {Colors.BLUE}simple{Colors.RESET}")
+            if relative_path.parts:
+                structure_display = f"{package_name}/{relative_path}/"
+            else:
+                structure_display = f"{package_name}/"
+        else:  # xdg
+            print(f"Package type: {Colors.BLUE}XDG{Colors.RESET}")
+            structure_display = f"{package_name}/.config/{package_name}/"
+
+        print(f"Structure:    {structure_display}")
+
+        if custom_target:
+            print(f"Target:       {custom_target}")
+
+        print(f"\n{Colors.BOLD}Configuration changes:{Colors.RESET}")
+        print(f"  • Add '{package_name}' to all_packages")
+        if is_sudo or structure_type == "sudo":
+            print(f"  • Add '{package_name}' to sudo_packages")
+        if custom_target:
+            print(f"  • Set custom target: {custom_target}")
+
+        # ========== 5. Dry-run mode ==========
+        if dry_run:
+            self._print_info("Dry-run mode - no changes will be made")
+            self._print_success("Validation passed! Run without --dry-run to create.")
+            return
+
+        # ========== 6. Confirmation ==========
+        if not self._confirm_action("Create this package?"):
+            self._print_warning("Operation cancelled")
+            return
+
+        # ========== 7. Create structure ==========
+        print()
+        self._print_info("Creating directory structure...")
+        success, created_dirs = self._create_package_structure(
+            package_name, structure_type, relative_path, dry_run=False
+        )
+
+        if not success:
+            self._print_error("Failed to create package structure")
+            return
+
+        for dir_path in created_dirs:
+            self._print_success(f"Created: {dir_path}")
+
+        # ========== 8. Update config ==========
+        self._print_info("Updating configuration...")
+        if not self._update_config_file(package_name, is_sudo or structure_type == "sudo", custom_target, dry_run=False):
+            # Rollback: remove created directories
+            self._print_warning("Rolling back changes...")
+            try:
+                if structure_type == "sudo":
+                    base_dir = self.config.dotfiles_dir / "sudo_packages" / package_name
+                else:
+                    base_dir = self.config.dotfiles_dir / package_name
+
+                if base_dir.exists():
+                    shutil.rmtree(base_dir)
+                    self._print_info(f"Removed: {base_dir}")
+            except OSError as e:
+                self._print_error(f"Failed to rollback: {e}")
+            return
+
+        self._print_success("Configuration updated")
+
+        # ========== 9. Automatic adopt if from_path specified and exists ==========
+        adopted = False
+        if from_path:
+            from_full_path = Path(from_path).expanduser()
+            if from_full_path.exists():
+                print()
+                self._print_info(f"Adopting files from {from_path}...")
+                try:
+                    self.adopt([package_name], git_commit=False)
+                    adopted = True
+                except Exception as e:
+                    self._print_warning(f"Adopt failed: {e}")
+                    self._print_info("You can run adopt manually later")
+            else:
+                self._print_warning(f"Path does not exist: {from_path}")
+                self._print_info("Package structure created, but no files adopted")
+
+        # ========== 10. Success message and next steps ==========
+        print()
+        if adopted:
+            self._print_header("Package Created and Adopted Successfully!")
+            print(f"\n{Colors.GREEN}✓{Colors.RESET} Files moved from {from_path} to dotfiles/{package_name}/")
+            print(f"{Colors.GREEN}✓{Colors.RESET} Symlinks created")
+            print(f"\n{Colors.BOLD}Next steps:{Colors.RESET}")
+            print(f"1. Review changes: git diff")
+            print(f'2. Commit: git add . && git commit -m "feat(dotfiles): add {package_name} config"')
+        else:
+            self._print_header("Package Created Successfully!")
+
+            if structure_type == "sudo":
+                base_dir = self.config.dotfiles_dir / "sudo_packages" / package_name
+            else:
+                base_dir = self.config.dotfiles_dir / package_name
+
+            print(f"\n{Colors.BOLD}Next steps:{Colors.RESET}")
+            print()
+            print(f"If you have existing configs:")
+            print(f"   ./dotfiles-manager.py adopt {package_name}")
+            print()
+            print(f"Or add files manually:")
+            print(f"   1. Copy your configuration to: {base_dir}/")
+            if structure_type == "xdg":
+                print(f"      (XDG structure: {base_dir}/.config/{package_name}/)")
+            print(f"   2. Install: ./dotfiles-manager.py install {package_name}")
+
+            if structure_type == "sudo":
+                print(f"\n{Colors.YELLOW}Note:{Colors.RESET} This is a sudo package.")
+                print(f"   Configure file mappings in .dotfiles-config.json")
+                print(f"   under 'special_files' -> '{package_name}'")
+
+        print()
+        self._log("SUCCESS", f"Package '{package_name}' created successfully")
+
 
 def load_config_file(dotfiles_dir: Path) -> Dict:
     """Load configuration from .dotfiles-config.json"""
@@ -980,6 +1353,43 @@ Examples:
         "-v", "--verbose", action="store_true", help="Verbose output"
     )
 
+    # new
+    new_parser = subparsers.add_parser(
+        "new",
+        help="Create new package",
+        description="Create a new package with automatic structure detection and optional adopt"
+    )
+    new_parser.add_argument(
+        "package_name",
+        help="Name of the new package"
+    )
+    new_parser.add_argument(
+        "--from",
+        dest="from_path",
+        metavar="PATH",
+        help="Path to existing config (e.g., ~/.aider or ~/.config/alacritty). Automatically determines structure and adopts files."
+    )
+    new_parser.add_argument(
+        "--sudo",
+        action="store_true",
+        help="Mark package as requiring sudo (for system files in /etc/)"
+    )
+    new_parser.add_argument(
+        "--target",
+        metavar="PATH",
+        help="Custom target directory where symlinks will be installed (default: ~)"
+    )
+    new_parser.add_argument(
+        "-n", "--dry-run",
+        action="store_true",
+        help="Simulate without making changes"
+    )
+    new_parser.add_argument(
+        "-v", "--verbose",
+        action="store_true",
+        help="Verbose output"
+    )
+
     args = parser.parse_args()
 
     if not args.command:
@@ -1029,6 +1439,15 @@ Examples:
     elif args.command == "check":
         packages = args.packages if args.packages else None
         manager.check(packages)
+
+    elif args.command == "new":
+        manager.new(
+            package_name=args.package_name,
+            from_path=args.from_path,
+            is_sudo=args.sudo,
+            custom_target=args.target,
+            dry_run=args.dry_run
+        )
 
 
 if __name__ == "__main__":
