@@ -11,7 +11,7 @@ No external dependencies!
 
 from pathlib import Path
 from dataclasses import dataclass
-from typing import List, Optional, Dict, Tuple
+from typing import List, Optional, Dict, Tuple, Any
 import subprocess
 import argparse
 import shutil
