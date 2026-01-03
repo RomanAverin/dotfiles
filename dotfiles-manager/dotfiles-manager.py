@@ -683,7 +683,7 @@ class DotfilesManager:
 
     # ========== Backup system ==========
 
-    def _create_backup(self, files: List[Path]) -> Path | None:
+    def _create_backup(self, files: List[Path]) -> Optional[Path]:
         """Create backup of files"""
         if not files:
             return None
