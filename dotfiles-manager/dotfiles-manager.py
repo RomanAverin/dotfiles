@@ -18,6 +18,7 @@ import shutil
 import sys
 import json
 from datetime import datetime
+import os
 
 
 @dataclass
@@ -1731,7 +1732,7 @@ def load_config_file(dotfiles_dir: Path) -> Dict:
 
 def create_config(args) -> Config:
     """Create configuration from arguments and configuration file"""
-    dotfiles_dir = Path(__file__).parent.resolve()
+    dotfiles_dir = Path(__file__).parent.parent.resolve()
 
     # Load configuration from file
     config_data = load_config_file(dotfiles_dir)

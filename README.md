@@ -1,5 +1,8 @@
 # My dotfiles are managed by a dotfiles management system
 
+![Test Dotfiles Manager](https://github.com/RomanAverin/dotfiles/actions/workflows/test-dotfiles-manager.yml/badge.svg)
+![Pylint](https://github.com/RomanAverin/dotfiles/actions/workflows/pylint.yml/badge.svg)
+
 > [!WARNING]
 > Please be careful. You use the configurations and manager at your own risk. It is possible that something may not work as described. This tool is for internal use and is subject to rapid change.
 > If you have any questions or problems, please post them in the discussions.
@@ -36,19 +39,19 @@ git clone https://github.com/RomanAverin/dotfiles
 cd dotfiles
 
 # Install configs for zsh and kitty
-./dotfiles-manager.py install zsh p10k.zsh kitty
+./dotfiles-manager/dotfiles-manager.py install zsh p10k.zsh kitty
 
 # Check status of all packages
-./dotfiles-manager.py status
+./dotfiles-manager/dotfiles-manager.py status
 
 # Move existing configs to dotfiles (with git integration)
-./dotfiles-manager.py adopt ghostty
+./dotfiles-manager/dotfiles-manager.py adopt ghostty
 
 # Remove symlinks
-./dotfiles-manager.py uninstall kitty
+./dotfiles-manager/dotfiles-manager.py uninstall kitty
 
 # Install all packages
-./dotfiles-manager.py install --all
+./dotfiles-manager/dotfiles-manager.py install --all
 ```
 
 ### Available Commands
@@ -85,6 +88,41 @@ When using `adopt` the script automatically:
 1. Shows `git diff` with changes
 2. Prompts to create a commit
 3. Formats commit following Conventional Commits
+
+## Development & Testing
+
+The dotfiles-manager includes comprehensive test coverage with automated CI/CD.
+
+### Running Tests Locally
+
+```bash
+cd dotfiles-manager
+
+# Install test dependencies
+pip install -r requirements-dev.txt
+
+# Run all tests
+pytest
+
+# Run with coverage report
+pytest --cov=. --cov-report=html
+
+# Run only unit tests
+pytest -m unit
+
+# Run specific test file
+pytest tests/test_validation.py
+```
+
+### Continuous Integration
+
+Automated workflows run on every push to `dotfiles-manager/`:
+
+- **Pylint**: Code quality checks (Python 3.8, 3.10, 3.12)
+- **Pytest**: Full test suite with 80%+ coverage requirement
+- **Triggers**: Only when `dotfiles-manager/**` files change
+
+Status badges show current build status at the top of this README.
 
 ## Troubleshooting
 

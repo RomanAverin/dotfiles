@@ -1,6 +1,15 @@
 name: Pylint
 
-on: [push]
+on:
+  push:
+    paths:
+      - 'dotfiles-manager/**/*.py'
+      - '.pylintrc'
+      - '.github/workflows/pylint.yml'
+  pull_request:
+    paths:
+      - 'dotfiles-manager/**/*.py'
+      - '.pylintrc'
 
 jobs:
   build:
@@ -20,4 +29,4 @@ jobs:
           pip install pylint
       - name: Analysing the code with pylint
         run: |
-          pylint --rcfile=.pylintrc $(git ls-files '*.py')
+          pylint --rcfile=.pylintrc $(git ls-files 'dotfiles-manager/*.py')

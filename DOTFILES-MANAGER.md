@@ -26,19 +26,19 @@ sudo dnf install stow git
 
 ```bash
 # List available packages
-./dotfiles-manager.py list
+./dotfiles-manager/dotfiles-manager.py list
 
 # Check current status
-./dotfiles-manager.py status
+./dotfiles-manager/dotfiles-manager.py status
 
 # Install packages (dry-run first)
-./dotfiles-manager.py install zsh kitty --dry-run
+./dotfiles-manager/dotfiles-manager.py install zsh kitty --dry-run
 
 # Install for real
-./dotfiles-manager.py install zsh kitty
+./dotfiles-manager/dotfiles-manager.py install zsh kitty
 
 # Install all packages
-./dotfiles-manager.py install --all
+./dotfiles-manager/dotfiles-manager.py install --all
 ```
 
 ## Commands
@@ -46,77 +46,77 @@ sudo dnf install stow git
 ### `install` - Install symlinks
 
 ```bash
-./dotfiles-manager.py install <packages>
-./dotfiles-manager.py install zsh p10k.zsh kitty
-./dotfiles-manager.py install --all              # All packages
-./dotfiles-manager.py install vim --dry-run      # Simulate only
+./dotfiles-manager/dotfiles-manager.py install <packages>
+./dotfiles-manager/dotfiles-manager.py install zsh p10k.zsh kitty
+./dotfiles-manager/dotfiles-manager.py install --all              # All packages
+./dotfiles-manager/dotfiles-manager.py install vim --dry-run      # Simulate only
 ```
 
 ### `uninstall` - Remove symlinks
 
 ```bash
-./dotfiles-manager.py uninstall <packages>
-./dotfiles-manager.py uninstall kitty
-./dotfiles-manager.py uninstall --all
+./dotfiles-manager/dotfiles-manager.py uninstall <packages>
+./dotfiles-manager/dotfiles-manager.py uninstall kitty
+./dotfiles-manager/dotfiles-manager.py uninstall --all
 ```
 
 ### `restow` - Reinstall symlinks
 
 ```bash
-./dotfiles-manager.py restow <packages>
-./dotfiles-manager.py restow zsh kitty
+./dotfiles-manager/dotfiles-manager.py restow <packages>
+./dotfiles-manager/dotfiles-manager.py restow zsh kitty
 ```
 
 ### `adopt` - Move existing configs to dotfiles
 
 ```bash
 # Moves existing files to dotfiles repo and creates symlinks
-./dotfiles-manager.py adopt ghostty
+./dotfiles-manager/dotfiles-manager.py adopt ghostty
 
 # Shows git diff and prompts for commit
-./dotfiles-manager.py adopt wezterm --no-git     # Skip git
+./dotfiles-manager/dotfiles-manager.py adopt wezterm --no-git     # Skip git
 ```
 
 ### `status` - Show symlink status
 
 ```bash
-./dotfiles-manager.py status                     # All packages
-./dotfiles-manager.py status zsh kitty          # Specific packages
+./dotfiles-manager/dotfiles-manager.py status                     # All packages
+./dotfiles-manager/dotfiles-manager.py status zsh kitty          # Specific packages
 ```
 
 ### `check` - Check symlink integrity
 
 ```bash
-./dotfiles-manager.py check                      # All packages
-./dotfiles-manager.py check zsh                 # Specific package
+./dotfiles-manager/dotfiles-manager.py check                      # All packages
+./dotfiles-manager/dotfiles-manager.py check zsh                 # Specific package
 ```
 
 ### `list` - List available packages
 
 ```bash
-./dotfiles-manager.py list
+./dotfiles-manager/dotfiles-manager.py list
 ```
 
 ### `new` - Create new package
 
 ```bash
 # Create package and automatically adopt existing config (recommended)
-./dotfiles-manager.py new alacritty --from ~/.config/alacritty
+./dotfiles-manager/dotfiles-manager.py new alacritty --from ~/.config/alacritty
 
 # Create package for directory in HOME root
-./dotfiles-manager.py new aider --from ~/.aider
+./dotfiles-manager/dotfiles-manager.py new aider --from ~/.aider
 
 # Create package for file in HOME root
-./dotfiles-manager.py new bashrc --from ~/.bashrc
+./dotfiles-manager/dotfiles-manager.py new bashrc --from ~/.bashrc
 
 # Create empty package structure (add files manually later)
-./dotfiles-manager.py new neovim
+./dotfiles-manager/dotfiles-manager.py new neovim
 
 # Create sudo package
-./dotfiles-manager.py new logid --from /etc/logid.cfg --sudo
+./dotfiles-manager/dotfiles-manager.py new logid --from /etc/logid.cfg --sudo
 
 # Dry-run to preview
-./dotfiles-manager.py new firefox --from ~/.mozilla/firefox --dry-run
+./dotfiles-manager/dotfiles-manager.py new firefox --from ~/.mozilla/firefox --dry-run
 ```
 
 **Features:**
@@ -129,22 +129,22 @@ sudo dnf install stow git
 
 ```bash
 # Delete a package (with confirmation and backup)
-./dotfiles-manager.py delete aider
+./dotfiles-manager/dotfiles-manager.py delete aider
 
 # Delete multiple packages
-./dotfiles-manager.py delete test1 test2 test3
+./dotfiles-manager/dotfiles-manager.py delete test1 test2 test3
 
 # Delete without confirmation (dangerous!)
-./dotfiles-manager.py delete aider --force
+./dotfiles-manager/dotfiles-manager.py delete aider --force
 
 # Keep files, only remove from configuration
-./dotfiles-manager.py delete aider --keep-files
+./dotfiles-manager/dotfiles-manager.py delete aider --keep-files
 
 # Delete without creating backup
-./dotfiles-manager.py delete aider --no-backup
+./dotfiles-manager/dotfiles-manager.py delete aider --no-backup
 
 # Preview what will be deleted
-./dotfiles-manager.py delete aider --dry-run
+./dotfiles-manager/dotfiles-manager.py delete aider --dry-run
 ```
 
 **What happens:**
@@ -249,7 +249,7 @@ Conflicting files are automatically backed up to `.backups/YYYYMMDD-HHMMSS/`
 Always test changes first:
 
 ```bash
-./dotfiles-manager.py install kitty --dry-run
+./dotfiles-manager/dotfiles-manager.py install kitty --dry-run
 ```
 
 ### Interactive Confirmations
@@ -281,10 +281,10 @@ git clone https://github.com/yourusername/dotfiles
 cd dotfiles
 
 # Review what will be installed
-./dotfiles-manager.py install --all --dry-run
+./dotfiles-manager/dotfiles-manager.py install --all --dry-run
 
 # Install everything
-./dotfiles-manager.py install --all
+./dotfiles-manager/dotfiles-manager.py install --all
 ```
 
 ### Adding New Package
@@ -293,10 +293,10 @@ cd dotfiles
 
 ```bash
 # Automatically create structure and adopt existing config
-./dotfiles-manager.py new alacritty --from ~/.config/alacritty
+./dotfiles-manager/dotfiles-manager.py new alacritty --from ~/.config/alacritty
 
 # For configs in HOME root
-./dotfiles-manager.py new aider --from ~/.aider
+./dotfiles-manager/dotfiles-manager.py new aider --from ~/.aider
 
 # The command will:
 # 1. Detect structure type automatically (XDG for ~/.config/, simple for ~/)
@@ -317,7 +317,7 @@ cp ~/.config/newpackage/config newpackage/.config/newpackage/
 # Edit .dotfiles-config.json and add "newpackage" to all_packages
 
 # Install
-./dotfiles-manager.py install newpackage
+./dotfiles-manager/dotfiles-manager.py install newpackage
 ```
 
 ### Adopting Existing Configs
@@ -326,7 +326,7 @@ cp ~/.config/newpackage/config newpackage/.config/newpackage/
 
 ```bash
 # One command does everything!
-./dotfiles-manager.py new alacritty --from ~/.config/alacritty
+./dotfiles-manager/dotfiles-manager.py new alacritty --from ~/.config/alacritty
 ```
 
 **Using `adopt` command (if package structure already exists):**
@@ -340,7 +340,7 @@ mkdir -p alacritty/.config/alacritty
 
 # Add to .dotfiles-config.json
 # Then adopt
-./dotfiles-manager.py adopt alacritty
+./dotfiles-manager/dotfiles-manager.py adopt alacritty
 
 # This will:
 # 1. Move ~/.config/alacritty/alacritty.yml to dotfiles/alacritty/.config/alacritty/
@@ -353,7 +353,7 @@ mkdir -p alacritty/.config/alacritty
 
 ```bash
 # Check all packages
-./dotfiles-manager.py status
+./dotfiles-manager/dotfiles-manager.py status
 
 # Output:
 # zsh:
@@ -374,7 +374,7 @@ git push
 
 # On another machine
 git pull
-./dotfiles-manager.py restow kitty
+./dotfiles-manager/dotfiles-manager.py restow kitty
 ```
 
 ## Status Indicators
@@ -418,7 +418,7 @@ Use `--dry-run` to preview. Files will be backed up automatically to `.backups/`
 ### Symlink integrity issues
 
 ```bash
-./dotfiles-manager.py check
+./dotfiles-manager/dotfiles-manager.py check
 ```
 
 ### View logs

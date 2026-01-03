@@ -1,0 +1,49 @@
+name: Test Dotfiles Manager
+
+on:
+  push:
+    paths:
+      - 'dotfiles-manager/**'
+      - '.github/workflows/test-dotfiles-manager.yml'
+  pull_request:
+    paths:
+      - 'dotfiles-manager/**'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.8", "3.10", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v3
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y stow
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r dotfiles-manager/requirements-dev.txt
+
+      - name: Run tests with pytest
+        run: |
+          cd dotfiles-manager
+          pytest --cov=. --cov-report=xml --cov-report=term-missing
+
+      - name: Upload coverage to Codecov (optional)
+        if: matrix.python-version == '3.12'
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./dotfiles-manager/coverage.xml
+          flags: dotfiles-manager
+          name: dotfiles-manager-coverage
+          fail_ci_if_error: false
