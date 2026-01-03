@@ -43,6 +43,7 @@ class Config:
     backup_dir: Path
     all_packages: List[str]
     sudo_packages: List[str]
+    package_targets: Dict[str, str]
     special_files: Dict[str, Dict[str, List[Dict]]]
     verbose: bool = False
 
@@ -277,6 +278,228 @@ class DotfilesManager:
             # Add custom target if specified
             if custom_target:
                 config_data.setdefault("package_targets", {})[package_name] = custom_target
+
+            # Save with proper formatting
+            if not dry_run:
+                with open(config_file, "w", encoding="utf-8") as f:
+                    json.dump(config_data, f, indent=2, ensure_ascii=False)
+                    f.write("\n")  # Add final newline
+
+                self._log("INFO", f"Updated config: {config_file}")
+
+            return True
+
+        except (json.JSONDecodeError, IOError) as e:
+            self._log("ERROR", f"Failed to update config: {e}")
+            self._print_error(f"Failed to update configuration: {e}")
+            return False
+
+    def _get_package_metadata(self, package_name: str) -> Dict[str, Any]:
+        """
+        Get comprehensive metadata about a package.
+
+        Args:
+            package_name: Name of the package
+
+        Returns:
+            Dictionary with package metadata:
+            - exists_in_config: bool
+            - exists_as_directory: bool
+            - is_sudo: bool
+            - has_custom_target: bool
+            - has_special_files: bool
+            - directory_path: Optional[Path]
+            - sudo_directory_path: Optional[Path]
+            - target: str
+        """
+        metadata = {
+            "exists_in_config": False,
+            "exists_as_directory": False,
+            "is_sudo": False,
+            "has_custom_target": False,
+            "has_special_files": False,
+            "directory_path": None,
+            "sudo_directory_path": None,
+            "target": str(self.config.target_dir),
+        }
+
+        # Check if package exists in configuration
+        if package_name in self.config.all_packages:
+            metadata["exists_in_config"] = True
+
+        # Check if it's a sudo package
+        if package_name in self.config.sudo_packages:
+            metadata["is_sudo"] = True
+
+        # Check if it has custom target
+        if package_name in self.config.package_targets:
+            metadata["has_custom_target"] = True
+            metadata["target"] = self.config.package_targets[package_name]
+
+        # Check if it has special files
+        if package_name in self.config.special_files:
+            metadata["has_special_files"] = True
+
+        # Check if package directory exists
+        package_dir = self.config.dotfiles_dir / package_name
+        if package_dir.exists() and package_dir.is_dir():
+            metadata["exists_as_directory"] = True
+            metadata["directory_path"] = package_dir
+
+        # Check if sudo package directory exists
+        sudo_dir = self.config.dotfiles_dir / "sudo_packages" / package_name
+        if sudo_dir.exists() and sudo_dir.is_dir():
+            metadata["exists_as_directory"] = True
+            metadata["sudo_directory_path"] = sudo_dir
+            metadata["is_sudo"] = True
+
+        return metadata
+
+    def _verify_symlinks_removed(self, package_name: str) -> Tuple[bool, List[Path]]:
+        """
+        Verify that all symlinks for a package have been removed.
+
+        Args:
+            package_name: Name of the package
+
+        Returns:
+            Tuple of (all_removed, list_of_remaining_symlinks)
+        """
+        remaining_symlinks = []
+        target = Path(self.config.package_targets.get(package_name, str(self.config.target_dir))).expanduser()
+
+        # Get package directory
+        package_dir = self.config.dotfiles_dir / package_name
+        sudo_dir = self.config.dotfiles_dir / "sudo_packages" / package_name
+
+        # Determine which directory to check
+        if sudo_dir.exists():
+            check_dir = sudo_dir
+        elif package_dir.exists():
+            check_dir = package_dir
+        else:
+            # No package directory exists, consider all removed
+            return (True, [])
+
+        # Walk through package directory and check for corresponding symlinks in target
+        for root, dirs, files in os.walk(check_dir):
+            rel_root = Path(root).relative_to(check_dir)
+
+            for file in files:
+                # Skip .gitkeep and other meta files
+                if file == ".gitkeep":
+                    continue
+
+                # Calculate target file path
+                file_rel_path = rel_root / file
+                target_file = target / file_rel_path
+
+                # Check if symlink still exists
+                if target_file.exists() or target_file.is_symlink():
+                    if target_file.is_symlink():
+                        # Check if it points to our package
+                        try:
+                            link_target = target_file.resolve(strict=False)
+                            package_file = check_dir / file_rel_path
+                            if link_target == package_file.resolve(strict=False):
+                                remaining_symlinks.append(target_file)
+                        except (OSError, RuntimeError):
+                            # If we can't resolve, assume it's not our symlink
+                            pass
+
+        all_removed = len(remaining_symlinks) == 0
+        return (all_removed, remaining_symlinks)
+
+    def _create_package_backup(
+        self, package_name: str, is_sudo: bool, dry_run: bool
+    ) -> Tuple[bool, Optional[Path]]:
+        """
+        Create a backup of the entire package directory.
+
+        Args:
+            package_name: Name of the package
+            is_sudo: Whether this is a sudo package
+            dry_run: If True, simulate only
+
+        Returns:
+            Tuple of (success, backup_path)
+        """
+        # Determine source directory
+        if is_sudo:
+            source_dir = self.config.dotfiles_dir / "sudo_packages" / package_name
+        else:
+            source_dir = self.config.dotfiles_dir / package_name
+
+        if not source_dir.exists():
+            self._log("WARNING", f"Package directory does not exist: {source_dir}")
+            return (True, None)  # Nothing to backup
+
+        # Create backup directory with timestamp
+        timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+        backup_base = self.config.dotfiles_dir / ".backups" / f"delete-{timestamp}"
+        backup_path = backup_base / package_name
+
+        try:
+            if dry_run:
+                self._print_info(f"Would create backup at: {backup_path}")
+                return (True, backup_path)
+
+            # Create backup directory
+            backup_base.mkdir(parents=True, exist_ok=True)
+
+            # Copy entire package directory
+            shutil.copytree(source_dir, backup_path)
+
+            self._log("INFO", f"Created backup: {backup_path}")
+            return (True, backup_path)
+
+        except (OSError, shutil.Error) as e:
+            self._log("ERROR", f"Failed to create backup: {e}")
+            return (False, None)
+
+    def _remove_from_config(
+        self, package_name: str, metadata: Dict[str, Any], dry_run: bool
+    ) -> bool:
+        """
+        Remove package from .dotfiles-config.json.
+        Reverse operation of _update_config_file().
+
+        Args:
+            package_name: Name of the package
+            metadata: Package metadata from _get_package_metadata()
+            dry_run: If True, simulate only
+
+        Returns:
+            success
+        """
+        config_file = self.config.dotfiles_dir / ".dotfiles-config.json"
+
+        try:
+            # Create backup
+            if not dry_run:
+                backup_file = config_file.with_suffix(".json.backup")
+                shutil.copy2(config_file, backup_file)
+                self._log("INFO", f"Config backup created: {backup_file}")
+
+            # Load current config
+            with open(config_file, "r", encoding="utf-8") as f:
+                config_data = json.load(f)
+
+            # Remove from all_packages
+            if package_name in config_data.get("all_packages", []):
+                config_data["all_packages"].remove(package_name)
+
+            # Remove from sudo_packages
+            if package_name in config_data.get("sudo_packages", []):
+                config_data["sudo_packages"].remove(package_name)
+
+            # Remove from package_targets
+            if package_name in config_data.get("package_targets", {}):
+                del config_data["package_targets"][package_name]
+
+            # Remove from special_files
+            if package_name in config_data.get("special_files", {}):
+                del config_data["special_files"][package_name]
 
             # Save with proper formatting
             if not dry_run:
@@ -1187,6 +1410,271 @@ class DotfilesManager:
         print()
         self._log("SUCCESS", f"Package '{package_name}' created successfully")
 
+    def delete(
+        self,
+        packages: List[str],
+        force: bool = False,
+        dry_run: bool = False,
+        keep_files: bool = False,
+        no_backup: bool = False,
+    ):
+        """
+        Delete packages completely from dotfiles.
+
+        Args:
+            packages: List of package names to delete
+            force: Skip confirmation prompt
+            dry_run: Simulate without making changes
+            keep_files: Keep package files, only remove from configuration
+            no_backup: Do not create backup before deleting
+        """
+        self._print_header("DELETE PACKAGES")
+
+        for package_name in packages:
+            # Step 1: Get package metadata
+            metadata = self._get_package_metadata(package_name)
+
+            # Check if package exists at all
+            if not metadata["exists_in_config"] and not metadata["exists_as_directory"]:
+                self._print_error(f"Package '{package_name}' does not exist")
+                self._print_info("  Not found in configuration or as directory")
+                continue
+
+            # Step 2: Show preview
+            self._print_header(f"Delete Package Preview: {package_name}")
+            print()
+
+            # Show location
+            if metadata["exists_as_directory"]:
+                if metadata["sudo_directory_path"]:
+                    location = f"sudo_packages/{package_name}/"
+                else:
+                    location = f"{package_name}/"
+                print(f"Location:  {location}")
+            else:
+                print(f"Location:  {Colors.YELLOW}(directory not found){Colors.RESET}")
+
+            # Show config status
+            if metadata["exists_in_config"]:
+                config_sections = ["all_packages"]
+                if metadata["is_sudo"]:
+                    config_sections.append("sudo_packages")
+                if metadata["has_custom_target"]:
+                    config_sections.append("package_targets")
+                if metadata["has_special_files"]:
+                    config_sections.append("special_files")
+                print(f"In config: {Colors.GREEN}Yes{Colors.RESET} ({', '.join(config_sections)})")
+            else:
+                print(f"In config: {Colors.YELLOW}No{Colors.RESET}")
+
+            print()
+
+            # Show warnings for edge cases
+            if metadata["exists_in_config"] and not metadata["exists_as_directory"]:
+                self._print_warning(
+                    "Package directory does not exist, will only remove from configuration"
+                )
+                print()
+            elif metadata["exists_as_directory"] and not metadata["exists_in_config"]:
+                self._print_warning(
+                    "Package not in configuration, will only remove directory"
+                )
+                print()
+
+            # Show actions
+            print(f"{Colors.CYAN}Actions:{Colors.RESET}")
+
+            if metadata["exists_as_directory"]:
+                print(f"  • Uninstall symlinks from {metadata['target']}")
+
+            if metadata["exists_as_directory"] and not no_backup and not keep_files:
+                timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+                backup_path = f".backups/delete-{timestamp}/{package_name}/"
+                print(f"  • Backup to: {backup_path}")
+
+            if metadata["exists_as_directory"] and not keep_files:
+                if metadata["sudo_directory_path"]:
+                    print(f"  • Remove directory: sudo_packages/{package_name}/")
+                else:
+                    print(f"  • Remove directory: {package_name}/")
+
+            if metadata["exists_in_config"]:
+                print(f"  • Remove from configuration:")
+                if package_name in self.config.all_packages:
+                    print(f"    - all_packages")
+                if metadata["is_sudo"]:
+                    print(f"    - sudo_packages")
+                if metadata["has_custom_target"]:
+                    print(f"    - package_targets")
+                if metadata["has_special_files"]:
+                    print(f"    - special_files")
+
+            print()
+            self._print_warning(
+                "This action cannot be undone (except via backup restore)"
+            )
+            print()
+
+            # Step 3: Dry-run check
+            if dry_run:
+                self._print_success(f"Dry-run: Would delete package '{package_name}'")
+                continue
+
+            # Step 4: Confirmation
+            if not force:
+                print(
+                    f"{Colors.YELLOW}To confirm deletion, type the package name:{Colors.RESET} {package_name}"
+                )
+                try:
+                    confirmation = input("> ").strip()
+                    if confirmation != package_name:
+                        self._print_warning("Confirmation failed. Package not deleted.")
+                        continue
+                    print(f"{Colors.GREEN}✓ Confirmed{Colors.RESET}")
+                    print()
+                except (KeyboardInterrupt, EOFError):
+                    print()
+                    self._print_warning("Operation cancelled by user")
+                    continue
+
+            # Step 5: Uninstall symlinks (if directory exists)
+            if metadata["exists_as_directory"]:
+                self._print_info(f"Uninstalling symlinks for '{package_name}'...")
+                try:
+                    # Call uninstall, but don't fail if there are no symlinks
+                    self.uninstall([package_name], dry_run=False)
+                except Exception as e:
+                    self._log("WARNING", f"Uninstall had errors: {e}")
+                    # Continue anyway
+
+                # Step 6: Verify symlinks removed
+                all_removed, remaining = self._verify_symlinks_removed(package_name)
+                if not all_removed:
+                    self._print_warning("Some symlinks could not be removed:")
+                    for symlink in remaining:
+                        print(f"  {symlink}")
+                    print()
+                    print("This may happen if:")
+                    print("  - Files were modified manually")
+                    print("  - Permission issues")
+                    print("  - Stow encountered an error")
+                    print()
+                    print(
+                        "Continue with deletion? This will remove the package from dotfiles,"
+                    )
+                    print("but symlinks will remain pointing to non-existent files.")
+
+                    try:
+                        continue_anyway = input("[y/N]: ").strip().lower()
+                        if continue_anyway != "y":
+                            self._print_warning(
+                                f"Deletion of '{package_name}' cancelled"
+                            )
+                            continue
+                    except (KeyboardInterrupt, EOFError):
+                        print()
+                        self._print_warning("Operation cancelled by user")
+                        continue
+
+            # Step 7: Create backup
+            backup_path = None
+            if metadata["exists_as_directory"] and not no_backup and not keep_files:
+                self._print_info("Creating backup...")
+                success, backup_path = self._create_package_backup(
+                    package_name, metadata["is_sudo"], dry_run=False
+                )
+
+                if not success:
+                    self._print_error("Failed to create backup")
+                    print()
+                    print("Continue deletion WITHOUT backup?")
+
+                    try:
+                        continue_anyway = input("[y/N]: ").strip().lower()
+                        if continue_anyway != "y":
+                            self._print_warning(
+                                f"Deletion of '{package_name}' cancelled"
+                            )
+                            continue
+                    except (KeyboardInterrupt, EOFError):
+                        print()
+                        self._print_warning("Operation cancelled by user")
+                        continue
+
+            # Step 8: Remove directory
+            if metadata["exists_as_directory"] and not keep_files:
+                self._print_info("Removing package directory...")
+
+                if metadata["sudo_directory_path"]:
+                    dir_to_remove = metadata["sudo_directory_path"]
+                else:
+                    dir_to_remove = metadata["directory_path"]
+
+                try:
+                    shutil.rmtree(dir_to_remove)
+                    self._log("INFO", f"Removed directory: {dir_to_remove}")
+                except (OSError, shutil.Error) as e:
+                    self._log("ERROR", f"Failed to remove directory: {e}")
+                    self._print_error(f"Failed to remove directory: {e}")
+                    # Don't continue if we can't remove the directory
+                    continue
+
+            # Step 9: Remove from config
+            if metadata["exists_in_config"]:
+                self._print_info("Updating configuration...")
+                success = self._remove_from_config(package_name, metadata, dry_run=False)
+
+                if not success:
+                    self._print_error("Failed to update configuration file")
+                    print()
+
+                    if backup_path:
+                        print(f"Package directory has been removed and backed up to:")
+                        print(f"  {backup_path}")
+                        print()
+
+                    print(f"{Colors.YELLOW}MANUAL ACTION REQUIRED:{Colors.RESET}")
+                    print("1. Check .dotfiles-config.json permissions")
+                    print(f"2. Manually remove '{package_name}' from .dotfiles-config.json")
+                    print("3. Or restore from backup: .dotfiles-config.json.backup")
+                    continue
+
+            # Step 10: Success message
+            print()
+            self._print_header("Package Deleted Successfully!")
+            print()
+
+            if metadata["exists_as_directory"]:
+                self._print_success(f"Symlinks removed from {metadata['target']}")
+
+            if backup_path:
+                self._print_success(f"Backup created: {backup_path}")
+
+            if metadata["exists_as_directory"] and not keep_files:
+                if metadata["sudo_directory_path"]:
+                    self._print_success(f"Directory removed: sudo_packages/{package_name}/")
+                else:
+                    self._print_success(f"Directory removed: {package_name}/")
+
+            if metadata["exists_in_config"]:
+                self._print_success("Configuration updated")
+
+            # Show restore instructions if backup was created
+            if backup_path:
+                print()
+                print(f"{Colors.CYAN}To restore this package:{Colors.RESET}")
+                if metadata["sudo_directory_path"]:
+                    print(
+                        f"1. Copy from backup: cp -r {backup_path} sudo_packages/"
+                    )
+                else:
+                    print(f"1. Copy from backup: cp -r {backup_path} .")
+                print(f"2. Manually add '{package_name}' back to .dotfiles-config.json")
+                print(f"3. Install: ./dotfiles-manager.py install {package_name}")
+
+            print()
+            self._log("SUCCESS", f"Package '{package_name}' deleted successfully")
+
 
 def load_config_file(dotfiles_dir: Path) -> Dict:
     """Load configuration from .dotfiles-config.json"""
@@ -1259,6 +1747,7 @@ def create_config(args) -> Config:
 
     all_packages = config_data.get("all_packages", [])
     sudo_packages = config_data.get("sudo_packages", [])
+    package_targets = config_data.get("package_targets", {})
     special_files = config_data.get("special_files", {})
 
     return Config(
@@ -1268,6 +1757,7 @@ def create_config(args) -> Config:
         backup_dir=dotfiles_dir / ".backups",
         all_packages=all_packages,
         sudo_packages=sudo_packages,
+        package_targets=package_targets,
         special_files=special_files,
         verbose=args.verbose if hasattr(args, "verbose") else False,
     )
@@ -1390,6 +1880,43 @@ Examples:
         help="Verbose output"
     )
 
+    # delete
+    delete_parser = subparsers.add_parser(
+        "delete",
+        help="Delete package completely",
+        description="Remove package from dotfiles (symlinks + directory + configuration)"
+    )
+    delete_parser.add_argument(
+        "packages",
+        nargs="+",
+        help="Names of packages to delete"
+    )
+    delete_parser.add_argument(
+        "-f", "--force",
+        action="store_true",
+        help="Skip confirmation prompt"
+    )
+    delete_parser.add_argument(
+        "-n", "--dry-run",
+        action="store_true",
+        help="Simulate without making changes"
+    )
+    delete_parser.add_argument(
+        "--keep-files",
+        action="store_true",
+        help="Keep package files, only remove from configuration"
+    )
+    delete_parser.add_argument(
+        "--no-backup",
+        action="store_true",
+        help="Do not create backup before deleting"
+    )
+    delete_parser.add_argument(
+        "-v", "--verbose",
+        action="store_true",
+        help="Verbose output"
+    )
+
     args = parser.parse_args()
 
     if not args.command:
@@ -1447,6 +1974,15 @@ Examples:
             is_sudo=args.sudo,
             custom_target=args.target,
             dry_run=args.dry_run
+        )
+
+    elif args.command == "delete":
+        manager.delete(
+            packages=args.packages,
+            force=args.force,
+            dry_run=args.dry_run,
+            keep_files=args.keep_files,
+            no_backup=args.no_backup
         )
 
 

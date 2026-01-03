@@ -125,6 +125,53 @@ sudo dnf install stow git
 - Optionally adopts existing files if `--from` is specified
 - No need to know about stow internals - just specify where your config is!
 
+### `delete` - Delete package completely
+
+```bash
+# Delete a package (with confirmation and backup)
+./dotfiles-manager.py delete aider
+
+# Delete multiple packages
+./dotfiles-manager.py delete test1 test2 test3
+
+# Delete without confirmation (dangerous!)
+./dotfiles-manager.py delete aider --force
+
+# Keep files, only remove from configuration
+./dotfiles-manager.py delete aider --keep-files
+
+# Delete without creating backup
+./dotfiles-manager.py delete aider --no-backup
+
+# Preview what will be deleted
+./dotfiles-manager.py delete aider --dry-run
+```
+
+**What happens:**
+1. Shows detailed preview of what will be deleted
+2. Requires confirmation by typing package name (protects against accidental deletion)
+3. Uninstalls all symlinks
+4. Creates backup in `.backups/delete-YYYYMMDD-HHMMSS/`
+5. Removes package directory
+6. Removes from `.dotfiles-config.json`
+
+**Options:**
+- `--force` - Skip confirmation (use with caution!)
+- `--dry-run` - Preview without making changes
+- `--keep-files` - Keep package directory, only remove from configuration
+- `--no-backup` - Don't create backup (permanent deletion)
+
+**Safety features:**
+- Double confirmation required (type package name)
+- Automatic backup creation by default
+- Shows all files that will be affected
+- Verifies symlink removal
+- Provides restore instructions
+
+**Difference from `uninstall`:**
+- `uninstall` - Only removes symlinks (temporary)
+- `delete` - Completely removes package from dotfiles (permanent)
+
 ## Options
 
 - `-a, --all` - Apply to all packages

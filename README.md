@@ -8,7 +8,7 @@
 
 ```bash
 sudo dnf install htop fd-find fzf zoxide ripgrep golang zsh git
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh (Rust instllation)
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh # Rust installation
 cargo install tlrc
 ```
 
