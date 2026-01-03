@@ -31,7 +31,7 @@ pip install -r requirements-dev.txt
 # Run all tests
 pytest
 
-# Run with coverage (requires 80%+)
+# Run with coverage report
 pytest --cov=. --cov-report=html --cov-report=term-missing
 
 # Run specific test types
@@ -49,8 +49,7 @@ pytest -n auto
 
 The test suite includes:
 
-- **~151 tests** covering 18 critical functions
-- **80%+ code coverage** requirement (enforced by CI)
+- **~151 tests** covering 18 critical functions (when fully implemented)
 - **Unit tests**: Fast, no I/O operations
 - **Integration tests**: File system operations
 
@@ -63,16 +62,14 @@ Automated checks run on every push to `dotfiles-manager/**`:
    - Runs on Python 3.8, 3.10, 3.12
 
 2. **Pytest** (`.github/workflows/test-dotfiles-manager.yml`)
-   - Full test suite with coverage
-   - Requires 80%+ coverage to pass
+   - Full test suite
    - Includes GNU Stow installation
 
 ### Making Changes
 
 1. Make your changes to `dotfiles-manager.py` or tests
 2. Run tests locally: `pytest`
-3. Ensure coverage is 80%+: `pytest --cov=. --cov-report=term-missing`
-4. Commit changes (workflows will run automatically)
+3. Commit changes (workflows will run automatically)
 
 ### Test Organization
 
@@ -106,9 +103,8 @@ Automated checks run on every push to `dotfiles-manager/**`:
 When adding new features:
 
 1. Write tests first (TDD approach recommended)
-2. Ensure 80%+ coverage for new code
-3. Update documentation if needed
-4. Run full test suite before committing
+2. Update documentation if needed
+3. Run full test suite before committing
 
 ## Support
 

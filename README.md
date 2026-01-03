@@ -119,7 +119,7 @@ pytest tests/test_validation.py
 Automated workflows run on every push to `dotfiles-manager/`:
 
 - **Pylint**: Code quality checks (Python 3.8, 3.10, 3.12)
-- **Pytest**: Full test suite with 80%+ coverage requirement
+- **Pytest**: Full test suite
 - **Triggers**: Only when `dotfiles-manager/**` files change
 
 Status badges show current build status at the top of this README.
