@@ -12,9 +12,7 @@ source "${ZINIT_HOME}/zinit.zsh"
 mkdir -p "$ZSH_CACHE_DIR/completions"
 (( ${fpath[(Ie)"$ZSH_CACHE_DIR/completions"]} )) || fpath=("$ZSH_CACHE_DIR/completions" $fpath)
 
-# Update completions
-autoload -Uz compinit
-compinit
+# Completions will be initialized by zinit after loading completion plugins
 
 # Add Starship
 zinit ice as"command" from"gh-r" \
@@ -49,21 +47,26 @@ zinit snippet OMZP::uv
 
 
 ### Auto completions
-# Load completions
+# Load completions with proper initialization order
 zinit wait lucid for \
- atinit"zicompinit; zicdreplay" \
+    atpull'zinit creinstall -q .' \
+    blockf \
+    zsh-users/zsh-completions
+
+zinit wait'1' lucid for \
+    atload'zicompinit; zicdreplay' \
     zdharma-continuum/fast-syntax-highlighting \
- blockf \
-    zsh-users/zsh-completions \
- atload"!_zsh_autosuggest_start" \
+    atload'!_zsh_autosuggest_start' \
     zsh-users/zsh-autosuggestions
 
 # Completion styling
+zstyle ':completion:*:git-checkout:*' sort false # disable sort when completing `git checkout`
 zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
 zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
 zstyle ':completion:*' menu no
 zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls --color $realpath'
 zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'ls --color $realpath'
+zstyle ':fzf-tab:*' switch-group '<' '>' # switch group using `<` and `>`
 
 ### History options
 HISTFILE=~/.zsh_history
@@ -126,8 +129,6 @@ alias zshconfig="vim ~/.zshrc"
 alias flushdns="sudo systemd-resolve --flush-caches"
 alias compose="podman-compose"
 alias show_use_ports="sudo lsof -i -P -n | grep LISTEN"
-#alias syncing_mount="~/syncing.sh mount"
-#alias syncing_umount="~/syncing.sh umount"
 alias preview='nvim $(fzf -m --preview="bat --color=always {}")'
 
 # Update all
@@ -141,6 +142,9 @@ alias ollama='f() { if [ "$1" = "stop" ]; then
   fi;
 }; f'
 
+# Dotfiles-manager 
+alias dotfiles="~/dotfiles/dotfiles-manager/dotfiles-manager.py"
+
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
@@ -152,7 +156,7 @@ export PATH=$HOME/Develop/go/bin:$PATH
 # Rust
 export PATH=$HOME/.cargo/bin:$PATH
 
-# Deno 
+# Deno
 . "$HOME/.deno/env"
 # Add deno completions to search path
 # if [[ ":$FPATH:" != *":$HOME/.zsh/completions:"* ]]; then export FPATH="$HOME/.zsh/completions:$FPATH"; fi
