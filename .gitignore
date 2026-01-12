@@ -4,4 +4,11 @@
 __pycache__/
 *.pyc
 *.pyo
-.claude/
+/.claude/
+.venv
+htmlcov
+.coverage
+.serena/
+.ruff_cache/
+*.backup
+*.backup-*
