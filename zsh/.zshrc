@@ -7,12 +7,22 @@ ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
 [ ! -d $ZINIT_HOME/.git ] && git clone https://github.com/zdharma-continuum/zinit.git "$ZINIT_HOME"
 source "${ZINIT_HOME}/zinit.zsh"
 
+# Define cache directory
+export ZSH_CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/zsh"
+
 # Create cache and completions dir and add to $fpath
 # for the oh-my-zsh error search plugins
 mkdir -p "$ZSH_CACHE_DIR/completions"
 (( ${fpath[(Ie)"$ZSH_CACHE_DIR/completions"]} )) || fpath=("$ZSH_CACHE_DIR/completions" $fpath)
 
-# Completions will be initialized by zinit after loading completion plugins
+# Early compinit initialization with caching for OMZ plugins
+# This prevents "compdef: command not found" errors from OMZ snippets
+autoload -Uz compinit
+if [[ -n ${ZSH_CACHE_DIR}/compdump(#qN.mh+24) ]]; then
+  compinit -d "${ZSH_CACHE_DIR}/compdump"
+else
+  compinit -C -d "${ZSH_CACHE_DIR}/compdump"
+fi
 
 # Add Starship
 zinit ice as"command" from"gh-r" \
@@ -54,7 +64,7 @@ zinit wait lucid for \
     zsh-users/zsh-completions
 
 zinit wait'1' lucid for \
-    atload'zicompinit; zicdreplay' \
+    atload'zicdreplay' \
     zdharma-continuum/fast-syntax-highlighting \
     atload'!_zsh_autosuggest_start' \
     zsh-users/zsh-autosuggestions
