@@ -196,7 +196,8 @@ export FZF_DEFAULT_OPTS=$FZF_DEFAULT_OPTS'
 source <(fzf --zsh)
 
 # Set up zoxide as default cd command
-eval "$(zoxide init --cmd cd zsh)"
+# eval "$(zoxide init --cmd cd zsh)"
+eval "$(zoxide init zsh)"
 
 # Set up python uv autocomplion
 eval "$(uv generate-shell-completion zsh)"
