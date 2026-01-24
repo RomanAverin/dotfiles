@@ -15,6 +15,22 @@ export ZSH_CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/zsh"
 mkdir -p "$ZSH_CACHE_DIR/completions"
 (( ${fpath[(Ie)"$ZSH_CACHE_DIR/completions"]} )) || fpath=("$ZSH_CACHE_DIR/completions" $fpath)
 
+# Fix insecure completion directories automatically
+# This prevents "compinit: insecure directories" warnings
+_fix_compinit_insecure_dirs() {
+  local insecure_dirs
+  insecure_dirs="$(compaudit 2>/dev/null)"
+
+  if [[ -n "$insecure_dirs" ]]; then
+    echo "Fixing insecure completion directories..." >&2
+    echo "$insecure_dirs" | xargs chmod g-w,o-w 2>/dev/null
+    echo "$insecure_dirs" | xargs chown -R "$USER" 2>/dev/null
+  fi
+}
+
+# Run the fix before compinit initialization
+_fix_compinit_insecure_dirs
+
 # Early compinit initialization with caching for OMZ plugins
 # This prevents "compdef: command not found" errors from OMZ snippets
 autoload -Uz compinit
