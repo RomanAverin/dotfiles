@@ -29,7 +29,7 @@ _fix_compinit_insecure_dirs() {
 }
 
 # Run the fix before compinit initialization
-_fix_compinit_insecure_dirs
+# _fix_compinit_insecure_dirs
 
 # Early compinit initialization with caching for OMZ plugins
 # This prevents "compdef: command not found" errors from OMZ snippets
@@ -149,6 +149,7 @@ export XDG_CONFIG_HOME=$HOME/.config
 function s() {
   wezterm cli spawn --domain-name SSH:$1
 }
+alias fix_compinit_insecure_dirs="_fix_compinit_insecure_dirs"
 alias remove_nvim_folders="rm -rf ~/.local/share/nvim ~/.local/state/nvim ~/.cache/nvim"
 alias ls="ls --color"
 alias zshconfig="vim ~/.zshrc"
