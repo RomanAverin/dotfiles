@@ -189,7 +189,7 @@ export PATH=$HOME/.cargo/bin:$PATH
 # if [[ ":$FPATH:" != *":$HOME/.zsh/completions:"* ]]; then export FPATH="$HOME/.zsh/completions:$FPATH"; fi
 
 # bun completions
-[ -s "/home/rastler/.bun/_bun" ] && source "/home/rastler/.bun/_bun"
+[ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"
 
 # bun
 [ -s "$HOME/.bun" ] && export BUN_INSTALL="$HOME/.bun" 
@@ -220,12 +220,14 @@ eval "$(zoxide init zsh)"
 eval "$(uv generate-shell-completion zsh)"
 
 # Added by LM Studio CLI (lms)
-export PATH="$PATH:/home/rastler/.lmstudio/bin"
+export PATH="$PATH:$HOME/lmstudio/bin"
 # End of LM Studio CLI section
 
 # opencode
-export PATH=/home/rastler/.opencode/bin:$PATH
+export PATH=$HOME/.opencode/bin:$PATH
 
 # The next line enables shell command completion for yc.
-if [ -f '/home/rastler/yandex-cloud/completion.zsh.inc' ]; then source '/home/rastler/yandex-cloud/completion.zsh.inc'; fi
+if [ -f '$HOME/yandex-cloud/completion.zsh.inc' ]; then source '$HOME/yandex-cloud/completion.zsh.inc'; fi
 
+# Activate mise
+eval "$($HOME/.local/bin/mise activate zsh)"
