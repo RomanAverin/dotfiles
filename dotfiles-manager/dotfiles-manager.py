@@ -423,6 +423,51 @@ class DotfilesManager:
 
         return self.config.target_dir
 
+    def _ensure_target_dir(self, target_dir: Path, dry_run: bool = False) -> bool:
+        """
+        Ensure target directory exists, create if needed.
+
+        Args:
+            target_dir: Path to target directory
+            dry_run: If True, create temporary directory for testing
+
+        Returns:
+            True if directory exists or was created successfully, False otherwise
+        """
+        if target_dir.exists():
+            if not target_dir.is_dir():
+                self._print_error(f"Target path exists but is not a directory: {target_dir}")
+                return False
+            return True
+
+        # Directory doesn't exist - need to create
+        self._print_warning(f"Target directory does not exist: {target_dir}")
+        
+        if dry_run:
+            self._print_info("Will create directory when running without --dry-run")
+            # Create temporary directory for dry-run testing
+            try:
+                target_dir.mkdir(parents=True, exist_ok=True)
+                self._log("INFO", f"Created temporary directory for dry-run: {target_dir}")
+                return True
+            except OSError as e:
+                self._print_error(f"Failed to create temporary directory: {e}")
+                return False
+
+        if not self._confirm_action(f"Create directory '{target_dir}'?"):
+            self._print_warning("Target directory creation cancelled")
+            return False
+
+        try:
+            target_dir.mkdir(parents=True, exist_ok=True)
+            self._print_success(f"Created directory: {target_dir}")
+            self._log("INFO", f"Created target directory: {target_dir}")
+            return True
+        except OSError as e:
+            self._print_error(f"Failed to create directory: {e}")
+            self._log("ERROR", f"Failed to create target directory {target_dir}: {e}")
+            return False
+
     def _verify_symlinks_removed(self, package_name: str) -> Tuple[bool, List[Path]]:
         """
         Verify that all symlinks for a package have been removed.
@@ -837,6 +882,24 @@ class DotfilesManager:
                     f"Warning: Custom target ignored for sudo packages: {', '.join(sudo_packages)}"
                 )
 
+        # Ensure all target directories exist
+        target_dirs_to_check = set()
+        created_temp_dirs = []  # Track directories created for dry-run
+        
+        for package in valid_packages:
+            if package not in self.config.sudo_packages:
+                target_dir = self._get_target_dir(package, custom_target)
+                target_dirs_to_check.add(target_dir)
+
+        for target_dir in target_dirs_to_check:
+            existed_before = target_dir.exists()
+            if not self._ensure_target_dir(target_dir, dry_run):
+                self._print_error(f"Cannot proceed without target directory: {target_dir}")
+                return
+            # Track directories created during dry-run for cleanup
+            if dry_run and not existed_before and target_dir.exists():
+                created_temp_dirs.append(target_dir)
+
         # Dry-run for all packages (except sudo packages)
         self._print_info("Analyzing changes...")
         dry_run_results = {}
@@ -851,6 +914,14 @@ class DotfilesManager:
 
         # Preview
         self._show_preview("install", valid_packages, dry_run_results, custom_target)
+
+        # Clean up temporary directories created for dry-run
+        for temp_dir in created_temp_dirs:
+            try:
+                temp_dir.rmdir()
+                self._log("INFO", f"Removed temporary directory: {temp_dir}")
+            except OSError:
+                pass  # Directory might not be empty or already removed
 
         if dry_run:
             self._print_info("Dry-run mode - no changes applied")
