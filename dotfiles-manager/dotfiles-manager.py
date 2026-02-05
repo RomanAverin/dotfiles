@@ -295,6 +295,51 @@ class DotfilesManager:
             self._print_error(f"Failed to update configuration: {e}")
             return False
 
+    def _update_package_target_in_config(
+        self, package_name: str, target_dir: str, dry_run: bool = False
+    ) -> bool:
+        """
+        Update only package_targets field in .dotfiles-config.json.
+
+        Args:
+            package_name: Name of the package
+            target_dir: Target directory path to save
+            dry_run: If True, don't actually save changes
+
+        Returns:
+            Success status
+        """
+        config_file = self.config.dotfiles_dir / ".dotfiles-config.json"
+
+        try:
+            # Create backup
+            if not dry_run:
+                backup_file = config_file.with_suffix(".json.backup")
+                shutil.copy2(config_file, backup_file)
+                self._log("INFO", f"Config backup created: {backup_file}")
+
+            # Load current config
+            with open(config_file, "r", encoding="utf-8") as f:
+                config_data = json.load(f)
+
+            # Update package_targets
+            config_data.setdefault("package_targets", {})[package_name] = target_dir
+
+            # Save with proper formatting
+            if not dry_run:
+                with open(config_file, "w", encoding="utf-8") as f:
+                    json.dump(config_data, f, indent=2, ensure_ascii=False)
+                    f.write("\n")  # Add final newline
+
+                self._log("INFO", f"Updated package target for '{package_name}': {target_dir}")
+
+            return True
+
+        except (json.JSONDecodeError, IOError) as e:
+            self._log("ERROR", f"Failed to update package target: {e}")
+            self._print_error(f"Failed to update configuration: {e}")
+            return False
+
     def _get_package_metadata(self, package_name: str) -> Dict[str, Any]:
         """
         Get comprehensive metadata about a package.
@@ -355,6 +400,28 @@ class DotfilesManager:
             metadata["is_sudo"] = True
 
         return metadata
+
+    def _get_target_dir(self, package_name: str, cli_target: Optional[str] = None) -> Path:
+        """
+        Determine target directory with priority handling:
+        1. CLI argument (-t) - highest priority
+        2. package_targets from config - medium priority
+        3. default_target - base priority
+
+        Args:
+            package_name: Name of the package
+            cli_target: Optional CLI-provided target directory
+
+        Returns:
+            Path object for target directory
+        """
+        if cli_target:
+            return Path(cli_target).expanduser()
+
+        if package_name in self.config.package_targets:
+            return Path(self.config.package_targets[package_name]).expanduser()
+
+        return self.config.target_dir
 
     def _verify_symlinks_removed(self, package_name: str) -> Tuple[bool, List[Path]]:
         """
@@ -596,14 +663,19 @@ class DotfilesManager:
 
         return files
 
-    def _dry_run_stow(self, operation: str, package: str) -> Tuple[bool, str]:
+    def _dry_run_stow(
+        self, operation: str, package: str, target_dir: Optional[Path] = None
+    ) -> Tuple[bool, str]:
         """Simulate stow operation via -n"""
+        if target_dir is None:
+            target_dir = self.config.target_dir
+
         cmd = ["stow", "-n", "-v"]
 
         if operation == "install":
-            cmd.extend(["-R", "-t", str(self.config.target_dir), package])
+            cmd.extend(["-R", "-t", str(target_dir), package])
         elif operation == "uninstall":
-            cmd.extend(["-D", "-t", str(self.config.target_dir), package])
+            cmd.extend(["-D", "-t", str(target_dir), package])
         else:
             return False, f"Unknown operation: {operation}"
 
@@ -619,13 +691,18 @@ class DotfilesManager:
         except subprocess.CalledProcessError as e:
             return False, e.stderr
 
-    def _check_conflicts(self, package: str) -> List[Tuple[Path, Path]]:
+    def _check_conflicts(
+        self, package: str, target_dir: Optional[Path] = None
+    ) -> List[Tuple[Path, Path]]:
         """Detect existing files (conflicts)"""
+        if target_dir is None:
+            target_dir = self.config.target_dir
+
         conflicts = []
         package_files = self._get_package_files(package)
 
         for rel_path in package_files:
-            target_file = self.config.target_dir / rel_path
+            target_file = target_dir / rel_path
             if target_file.exists() and not target_file.is_symlink():
                 dotfile = self.config.dotfiles_dir / package / rel_path
                 conflicts.append((target_file, dotfile))
@@ -637,13 +714,30 @@ class DotfilesManager:
         operation: str,
         packages: List[str],
         dry_run_results: Dict[str, Tuple[bool, str]],
+        custom_target: Optional[str] = None,
     ):
         """Show detailed preview before execution"""
         self._print_header(f"Preview: {operation.upper()}")
 
         print(f"Operation: {operation}")
         print(f"Packages: {', '.join(packages)}")
-        print(f"Target: {self.config.target_dir}")
+
+        # Show targets (may differ per package)
+        targets_shown = set()
+        for package in packages:
+            if package not in self.config.sudo_packages:
+                target_dir = self._get_target_dir(package, custom_target)
+                targets_shown.add(str(target_dir))
+
+        if len(targets_shown) == 1:
+            print(f"Target: {targets_shown.pop()}")
+        elif len(targets_shown) > 1:
+            print("Targets: (varies by package)")
+            for package in packages:
+                if package not in self.config.sudo_packages:
+                    target_dir = self._get_target_dir(package, custom_target)
+                    if str(target_dir) != str(self.config.target_dir):
+                        print(f"  {package}: {target_dir}")
 
         total_success = 0
         total_conflicts = 0
@@ -656,12 +750,14 @@ class DotfilesManager:
                 total_success += 1
 
                 # Check conflicts
-                conflicts = self._check_conflicts(package)
-                if conflicts:
-                    total_conflicts += len(conflicts)
-                    self._print_warning(f"  Found conflicts: {len(conflicts)}")
-                    for target in conflicts[:3]:  # Show first 3
-                        print(f"    {target}")
+                if package not in self.config.sudo_packages:
+                    target_dir = self._get_target_dir(package, custom_target)
+                    conflicts = self._check_conflicts(package, target_dir)
+                    if conflicts:
+                        total_conflicts += len(conflicts)
+                        self._print_warning(f"  Found conflicts: {len(conflicts)}")
+                        for target in conflicts[:3]:  # Show first 3
+                            print(f"    {target}")
             else:
                 self._print_error(f"Package '{package}' - error")
                 total_success += 0
@@ -707,8 +803,19 @@ class DotfilesManager:
 
     # ========== Core stow operations ==========
 
-    def install(self, packages: List[str], dry_run: bool = False):
+    def install(
+        self,
+        packages: List[str],
+        dry_run: bool = False,
+        custom_target: Optional[str] = None,
+        save_target: bool = False,
+    ):
         """Install symlinks via stow -R"""
+        # Validation for save_target
+        if save_target and not custom_target:
+            self._print_error("--save-target requires -t/--target option")
+            return
+
         self._log("INFO", f"Starting install operation for: {', '.join(packages)}")
 
         # Parse package specifications (format: package or package:file)
@@ -722,6 +829,14 @@ class DotfilesManager:
         if not valid_packages:
             return
 
+        # Warning for sudo packages with custom target
+        if custom_target:
+            sudo_packages = [p for p in valid_packages if p in self.config.sudo_packages]
+            if sudo_packages:
+                self._print_warning(
+                    f"Warning: Custom target ignored for sudo packages: {', '.join(sudo_packages)}"
+                )
+
         # Dry-run for all packages (except sudo packages)
         self._print_info("Analyzing changes...")
         dry_run_results = {}
@@ -730,11 +845,12 @@ class DotfilesManager:
             if package in self.config.sudo_packages:
                 dry_run_results[package] = (True, "sudo package - no stow dry-run")
             else:
-                success, output = self._dry_run_stow("install", package)
+                target_dir = self._get_target_dir(package, custom_target)
+                success, output = self._dry_run_stow("install", package, target_dir)
                 dry_run_results[package] = (success, output)
 
         # Preview
-        self._show_preview("install", valid_packages, dry_run_results)
+        self._show_preview("install", valid_packages, dry_run_results, custom_target)
 
         if dry_run:
             self._print_info("Dry-run mode - no changes applied")
@@ -748,8 +864,10 @@ class DotfilesManager:
         # Handle conflicts and create backups
         all_conflicts = []
         for package in valid_packages:
-            conflicts = self._check_conflicts(package)
-            all_conflicts.extend([c[0] for c in conflicts])
+            if package not in self.config.sudo_packages:
+                target_dir = self._get_target_dir(package, custom_target)
+                conflicts = self._check_conflicts(package, target_dir)
+                all_conflicts.extend([c[0] for c in conflicts])
 
         if all_conflicts:
             self._create_backup(all_conflicts)
@@ -763,7 +881,8 @@ class DotfilesManager:
                 self._handle_sudo_package(package, "install", specific_file)
                 continue
 
-            cmd = ["stow", "-v", "-R", "-t", str(self.config.target_dir), package]
+            target_dir = self._get_target_dir(package, custom_target)
+            cmd = ["stow", "-v", "-R", "-t", str(target_dir), package]
 
             try:
                 result = subprocess.run(
@@ -776,6 +895,11 @@ class DotfilesManager:
                 self._print_success(f"Package '{package}' installed")
                 self._log("SUCCESS", f"Package '{package}' installed successfully")
 
+                # Save target to config if requested
+                if save_target and custom_target:
+                    self._update_package_target_in_config(package, custom_target, dry_run=False)
+                    self._print_info(f"Saved custom target for '{package}': {custom_target}")
+
                 if self.config.verbose and result.stderr:
                     print(result.stderr)
 
@@ -785,7 +909,9 @@ class DotfilesManager:
                 if e.stderr:
                     print(e.stderr, file=sys.stderr)
 
-    def uninstall(self, packages: List[str], dry_run: bool = False):
+    def uninstall(
+        self, packages: List[str], dry_run: bool = False, custom_target: Optional[str] = None
+    ):
         """Remove symlinks via stow -D"""
         self._log("INFO", f"Starting uninstall operation for: {', '.join(packages)}")
 
@@ -800,6 +926,14 @@ class DotfilesManager:
         if not valid_packages:
             return
 
+        # Warning for sudo packages with custom target
+        if custom_target:
+            sudo_packages = [p for p in valid_packages if p in self.config.sudo_packages]
+            if sudo_packages:
+                self._print_warning(
+                    f"Warning: Custom target ignored for sudo packages: {', '.join(sudo_packages)}"
+                )
+
         # Dry-run for all packages (except sudo packages)
         self._print_info("Analyzing changes...")
         dry_run_results = {}
@@ -808,11 +942,12 @@ class DotfilesManager:
             if package in self.config.sudo_packages:
                 dry_run_results[package] = (True, "sudo package - no stow dry-run")
             else:
-                success, output = self._dry_run_stow("uninstall", package)
+                target_dir = self._get_target_dir(package, custom_target)
+                success, output = self._dry_run_stow("uninstall", package, target_dir)
                 dry_run_results[package] = (success, output)
 
         # Preview
-        self._show_preview("uninstall", valid_packages, dry_run_results)
+        self._show_preview("uninstall", valid_packages, dry_run_results, custom_target)
 
         if dry_run:
             self._print_info("Dry-run mode - no changes applied")
@@ -832,7 +967,8 @@ class DotfilesManager:
                 self._handle_sudo_package(package, "uninstall", specific_file)
                 continue
 
-            cmd = ["stow", "-v", "-D", "-t", str(self.config.target_dir), package]
+            target_dir = self._get_target_dir(package, custom_target)
+            cmd = ["stow", "-v", "-D", "-t", str(target_dir), package]
 
             try:
                 result = subprocess.run(
@@ -854,13 +990,30 @@ class DotfilesManager:
                 if e.stderr:
                     print(e.stderr, file=sys.stderr)
 
-    def restow(self, packages: List[str], dry_run: bool = False):
+    def restow(
+        self,
+        packages: List[str],
+        dry_run: bool = False,
+        custom_target: Optional[str] = None,
+        save_target: bool = False,
+    ):
         """Reinstall symlinks (alias for install)"""
         self._print_info("Restow = reinstall symlinks")
-        self.install(packages, dry_run)
+        self.install(packages, dry_run, custom_target, save_target)
 
-    def adopt(self, packages: List[str], git_commit: bool = True):
+    def adopt(
+        self,
+        packages: List[str],
+        git_commit: bool = True,
+        custom_target: Optional[str] = None,
+        save_target: bool = False,
+    ):
         """Move existing configs to dotfiles via stow --adopt"""
+        # Validation for save_target
+        if save_target and not custom_target:
+            self._print_error("--save-target requires -t/--target option")
+            return
+
         self._log("INFO", f"Starting adopt operation for: {', '.join(packages)}")
 
         # Validate packages
@@ -873,7 +1026,8 @@ class DotfilesManager:
         total_conflicts = 0
 
         for package in valid_packages:
-            conflicts = self._check_conflicts(package)
+            target_dir = self._get_target_dir(package, custom_target)
+            conflicts = self._check_conflicts(package, target_dir)
             if conflicts:
                 total_conflicts += len(conflicts)
                 print(f"\n{Colors.CYAN}{package}{Colors.RESET}:")
@@ -899,7 +1053,8 @@ class DotfilesManager:
         # Execute stow --adopt
         print()
         for package in valid_packages:
-            cmd = ["stow", "-v", "--adopt", "-t", str(self.config.target_dir), package]
+            target_dir = self._get_target_dir(package, custom_target)
+            cmd = ["stow", "-v", "--adopt", "-t", str(target_dir), package]
 
             try:
                 result = subprocess.run(
@@ -911,6 +1066,11 @@ class DotfilesManager:
                 )
                 self._print_success(f"Package '{package}' adopted")
                 self._log("SUCCESS", f"Package '{package}' adopted successfully")
+
+                # Save target to config if requested
+                if save_target and custom_target:
+                    self._update_package_target_in_config(package, custom_target, dry_run=False)
+                    self._print_info(f"Saved custom target for '{package}': {custom_target}")
 
                 if self.config.verbose and result.stderr:
                     print(result.stderr)
@@ -1791,6 +1951,14 @@ Examples:
     install_parser.add_argument(
         "-v", "--verbose", action="store_true", help="Verbose output"
     )
+    install_parser.add_argument(
+        "-t", "--target", metavar="DIR",
+        help="Target directory for symlinks (overrides config and default)"
+    )
+    install_parser.add_argument(
+        "--save-target", action="store_true",
+        help="Save custom target to config (requires -t)"
+    )
 
     # uninstall
     uninstall_parser = subparsers.add_parser("uninstall", help="Remove symlinks")
@@ -1804,6 +1972,10 @@ Examples:
     uninstall_parser.add_argument(
         "-v", "--verbose", action="store_true", help="Verbose output"
     )
+    uninstall_parser.add_argument(
+        "-t", "--target", metavar="DIR",
+        help="Target directory for symlinks"
+    )
 
     # restow
     restow_parser = subparsers.add_parser("restow", help="Reinstall symlinks")
@@ -1815,6 +1987,14 @@ Examples:
     restow_parser.add_argument(
         "-v", "--verbose", action="store_true", help="Verbose output"
     )
+    restow_parser.add_argument(
+        "-t", "--target", metavar="DIR",
+        help="Target directory for symlinks (overrides config and default)"
+    )
+    restow_parser.add_argument(
+        "--save-target", action="store_true",
+        help="Save custom target to config (requires -t)"
+    )
 
     # adopt
     adopt_parser = subparsers.add_parser("adopt", help="Adopt existing configs")
@@ -1822,6 +2002,14 @@ Examples:
     adopt_parser.add_argument("--no-git", action="store_true", help="Skip git commit")
     adopt_parser.add_argument(
         "-v", "--verbose", action="store_true", help="Verbose output"
+    )
+    adopt_parser.add_argument(
+        "-t", "--target", metavar="DIR",
+        help="Target directory for symlinks (overrides config and default)"
+    )
+    adopt_parser.add_argument(
+        "--save-target", action="store_true",
+        help="Save custom target to config (requires -t)"
     )
 
     # status
@@ -1938,24 +2126,43 @@ Examples:
         if not packages:
             print("Specify packages or use --all")
             sys.exit(1)
-        manager.install(packages, dry_run=args.dry_run)
+        manager.install(
+            packages,
+            dry_run=args.dry_run,
+            custom_target=getattr(args, 'target', None),
+            save_target=getattr(args, 'save_target', False)
+        )
 
     elif args.command == "uninstall":
         packages = config.all_packages if args.all else args.packages
         if not packages:
             print("Specify packages or use --all")
             sys.exit(1)
-        manager.uninstall(packages, dry_run=args.dry_run)
+        manager.uninstall(
+            packages,
+            dry_run=args.dry_run,
+            custom_target=getattr(args, 'target', None)
+        )
 
     elif args.command == "restow":
         packages = config.all_packages if args.all else args.packages
         if not packages:
             print("Specify packages or use --all")
             sys.exit(1)
-        manager.restow(packages, dry_run=args.dry_run)
+        manager.restow(
+            packages,
+            dry_run=args.dry_run,
+            custom_target=getattr(args, 'target', None),
+            save_target=getattr(args, 'save_target', False)
+        )
 
     elif args.command == "adopt":
-        manager.adopt(args.packages, git_commit=not args.no_git)
+        manager.adopt(
+            args.packages,
+            git_commit=not args.no_git,
+            custom_target=getattr(args, 'target', None),
+            save_target=getattr(args, 'save_target', False)
+        )
 
     elif args.command == "status":
         packages = args.packages if args.packages else None
