@@ -1,7 +1,8 @@
 ### Font
 font-family = "JetBrainsMono Nerd Font"
+# font-family = "CodeNewRoman Nerd Font"
 font-style = "Light"
-font-size = 12.5
+font-size = 13
 
 ### Shell
 shell-integration = zsh
@@ -36,10 +37,10 @@ keybind = ctrl+ >/=new_split:left
 keybind = ctrl+ >-=new_split:down
 keybind = ctrl+ >z=toggle_split_zoom
 keybind = ctrl+ >e=equalize_splits
-keybind = ctrl+ >h=goto_split:left
-keybind = ctrl+ >j=goto_split:bottom
-keybind = ctrl+ >k=goto_split:top
-keybind = ctrl+ >l=goto_split:right
+keybind = alt+h=goto_split:left
+keybind = alt+j=goto_split:bottom
+keybind = alt+k=goto_split:top
+keybind = alt+l=goto_split:right
 keybind = ctrl+ >n=next_tab
 keybind = ctrl+ >p=previous_tab
 keybind = performable:ctrl+c=copy_to_clipboard
