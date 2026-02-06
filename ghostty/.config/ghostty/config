@@ -1,13 +1,13 @@
 ### Font
 font-family = "JetBrainsMono Nerd Font"
-# font-family = "CodeNewRoman Nerd Font"
 font-style = "Light"
 font-size = 13
 
 ### Shell
-shell-integration = zsh
+shell-integration = detect
 shell-integration-features = cursor,sudo,title
 # shell-integration-features = true 
+command = tmux new-session -A -s main
 
 ### Window
 theme = charleston 
@@ -16,33 +16,39 @@ window-width = 180
 # window-save-state = always
 window-padding-balance = true
 auto-update = off
-window-inherit-working-directory = true
+# window-inherit-working-directory = true
 working-directory = home
 unfocused-split-opacity = 1
 desktop-notifications = false
 background-opacity = 0.97
-adw-toolbar-style = raised-border
+gtk-toolbar-style = raised-border
 gtk-titlebar-hide-when-maximized = false
 gtk-single-instance = false
+gtk-titlebar-style = native
+
+### Cursor
+cursor-style = bar
+cursor-style-blink = true
 
 ### Keybind
-keybind = ctrl+ >r=reload_config
-keybind = ctrl+ >c=new_window
-keybind = ctrl+ >t=new_tab
-keybind = ctrl+ >w=close_surface
-keybind = ctrl+enter=toggle_split_zoom
-keybind = ctrl+shift+enter=toggle_fullscreen
-keybind = ctrl+ >\=new_split:right
-keybind = ctrl+ >/=new_split:left
-keybind = ctrl+ >-=new_split:down
-keybind = ctrl+ >z=toggle_split_zoom
-keybind = ctrl+ >e=equalize_splits
-keybind = alt+h=goto_split:left
-keybind = alt+j=goto_split:bottom
-keybind = alt+k=goto_split:top
-keybind = alt+l=goto_split:right
-keybind = ctrl+ >n=next_tab
-keybind = ctrl+ >p=previous_tab
+# keybind = ctrl+ >r=reload_config
+# keybind = ctrl+ >c=new_window
+# keybind = ctrl+ >t=new_tab
+# keybind = ctrl+ >w=close_surface
+# keybind = ctrl+enter=toggle_split_zoom
+# keybind = ctrl+shift+enter=toggle_fullscreen
+# keybind = ctrl+ >\=new_split:right
+# keybind = ctrl+ >/=new_split:left
+# keybind = ctrl+ >-=new_split:down
+# keybind = ctrl+ >z=toggle_split_zoom
+# keybind = ctrl+ >e=equalize_splits
+# keybind = alt+h=goto_split:left
+# keybind = alt+j=goto_split:bottom
+# keybind = alt+k=goto_split:top
+# keybind = alt+l=goto_split:right
+# keybind = ctrl+ >n=next_tab
+# keybind = ctrl+ >p=previous_tab
+# copy/paste
 keybind = performable:ctrl+c=copy_to_clipboard
 keybind = ctrl+v=paste_from_clipboard
 
