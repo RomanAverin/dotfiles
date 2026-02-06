@@ -110,8 +110,8 @@ setopt INC_APPEND_HISTORY
 ### Bind keys
 bindkey '^A' beginning-of-line
 bindkey '^E' end-of-line
-bindkey '^[[A' history-search-backward
-bindkey '^[[B' history-search-forward
+# bindkey '^[[A' history-search-backward
+# bindkey '^[[B' history-search-forward
 bindkey '^[[1;5D' backward-word
 bindkey '^[[1;5C' forward-word
 bindkey '^[[1~' beginning-of-line
@@ -119,11 +119,6 @@ bindkey '^[[4~' end-of-line
 bindkey '^[[H' beginning-of-line
 bindkey '^[[F' end-of-line
 bindkey '^[[3~' delete-char
-# movement with ctrl key and vi move keys
-bindkey '^k' up-line-or-search
-bindkey '^j' down-line-or-search
-bindkey '^l' forward-word
-bindkey '^h' backward-word
 
 ### Environment variables 
 export PATH=$HOME/.local/bin:/usr/local/bin:$PATH
