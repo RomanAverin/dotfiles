@@ -50,7 +50,6 @@ zinit light starship/starship
 zinit ice depth=1
 zinit light zdharma-continuum/history-search-multi-word
 zinit light Aloxaf/fzf-tab
-zinit light justyntemme/zsh-deja-vu
 # zinit ice depth=1
 # zinit light jeffreytse/zsh-vi-mode
 
