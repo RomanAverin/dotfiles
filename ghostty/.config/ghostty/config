@@ -7,7 +7,7 @@ font-size = 13
 shell-integration = detect
 shell-integration-features = cursor,sudo,title
 # shell-integration-features = true 
-command = tmux new-session -A -s main
+command = tmux new-session -A -s main || tmux
 
 ### Window
 theme = charleston 
