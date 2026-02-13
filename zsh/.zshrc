@@ -118,6 +118,7 @@ bindkey '^[[4~' end-of-line
 bindkey '^[[H' beginning-of-line
 bindkey '^[[F' end-of-line
 bindkey '^[[3~' delete-char
+zle_highlight+=(paste:none)
 
 ### Environment variables 
 export PATH=$HOME/.local/bin:/usr/local/bin:$PATH
