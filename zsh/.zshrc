@@ -225,4 +225,4 @@ export PATH=$HOME/.opencode/bin:$PATH
 if [ -f '$HOME/yandex-cloud/completion.zsh.inc' ]; then source '$HOME/yandex-cloud/completion.zsh.inc'; fi
 
 # Activate mise
-eval "$($HOME/.local/bin/mise activate zsh)"
+[ -f "$HOME/.local/bin/mise" ] && eval "$($HOME/.local/bin/mise activate zsh)"
