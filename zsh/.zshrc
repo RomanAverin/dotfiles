@@ -107,6 +107,8 @@ setopt APPEND_HISTORY
 setopt INC_APPEND_HISTORY
 
 ### Bind keys
+# Fix Ctrl+H: prevent PTY from interpreting it as erase in SSH sessions
+[[ -t 0 ]] && stty erase '^?'
 bindkey '^A' beginning-of-line
 bindkey '^E' end-of-line
 # bindkey '^[[A' history-search-backward
