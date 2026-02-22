@@ -167,6 +167,7 @@ alias flushdns="sudo systemd-resolve --flush-caches"
 alias compose="podman-compose"
 alias show_use_ports="sudo lsof -i -P -n | grep LISTEN"
 alias preview='nvim $(fzf -m --preview="bat --color=always {}")'
+alias zsh-bench='ZSH_BENCHMARK=Yes zsh'
 
 # Update all
 alias update_all="sudo dnf upgrade --refresh --assumeyes && flatpak update --assumeyes && flatpak remove --unused"
