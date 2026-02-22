@@ -43,24 +43,24 @@ fi
 # ============================================================================
 print -P ""
 print -P "${cyan}╭─────────────────────────────────────────────────────────────────╮${reset}"
-print -P "${cyan}│${reset}  ${white}ZSH STARTUP BENCHMARK${reset}                                        ${cyan}│${reset}"
+print -P "${cyan}│${reset}  ${white}ZSH STARTUP BENCHMARK${reset}                                          ${cyan}│${reset}"
 print -P "${cyan}├─────────────────────────────────────────────────────────────────┤${reset}"
-printf "${cyan}│${reset}  Total Load Time: ${white}%-8.2f ms${reset}                               ${cyan}│${reset}\n" "$total_ms"
-printf "${cyan}│${reset}  Performance:     ${rating_color}%-20s${reset} ${rating_emoji}              ${cyan}│${reset}\n" "$rating_label"
+printf "${cyan}│${reset}  Total Load Time: ${white}%-8.2f ms${reset}                                   ${cyan}│${reset}\n" "$total_ms"
+printf "${cyan}│${reset}  Performance:     ${rating_color}%-20s${reset} ${rating_emoji}                       ${cyan}│${reset}\n" "$rating_label"
 print -P "${cyan}╰─────────────────────────────────────────────────────────────────╯${reset}"
 
 # ============================================================================
 # Print Top 10 Functions Table (if zprof is available)
 # ============================================================================
-if (( $+functions[zprof] )); then
+if (( $+builtins[zprof] )); then
     print -P ""
     print -P "${purple}╭─────────────────────────────────────────────────────────────────╮${reset}"
-    print -P "${purple}│${reset}  ${white}TOP 10 SLOWEST FUNCTIONS${reset}                                     ${purple}│${reset}"
+    print -P "${purple}│${reset}  ${white}TOP 10 SLOWEST FUNCTIONS${reset}                                       ${purple}│${reset}"
     print -P "${purple}├─────────────────────────────────────────────────────────────────┤${reset}"
-    printf "${purple}│${reset}  ${dim}%-28s %10s %7s %12s${reset}  ${purple}│${reset}\n" "FUNCTION" "TIME" "CALLS" "LOAD"
+    printf "${purple}│${reset}  ${dim}%-28s %12s %6s  %-12s${reset} ${purple}│${reset}\n" "FUNCTION" "TIME" "CALLS" "LOAD"
     print -P "${purple}├─────────────────────────────────────────────────────────────────┤${reset}"
 
-    # Parse zprof output and format top 10 functions
+    # Parse zprof output and format top 10 functions (sorted by load descending)
     zprof | awk -v purple="$purple" -v reset="$reset" -v dim="$dim" -v white="$white" \
                  -v yellow="$yellow" -v red="$red" '
     BEGIN {
@@ -68,46 +68,60 @@ if (( $+functions[zprof] )); then
         max_entries = 10
     }
 
-    # Skip header lines and capture function data
     /^[0-9]+\)/ {
-        if (count >= max_entries) exit
+        func_name = $NF
+        if (func_name in seen_funcs) next
+        seen_funcs[func_name] = 1
 
-        # Extract function name (column 2)
-        func_name = $2
+        time_ms = $3 + 0
+        calls = $2 + 0
+        percent = $5; gsub(/%/, "", percent); percent = percent + 0
 
-        # Extract time in milliseconds (column 3)
-        time_ms = $3
+        if (length(func_name) > 26) func_name = substr(func_name, 1, 23) "..."
 
-        # Extract call count (column 4)
-        calls = $4
-
-        # Extract percentage (column 5, remove % sign)
-        percent = $5
-        gsub(/%/, "", percent)
-
-        # Truncate long function names
-        if (length(func_name) > 26) {
-            func_name = substr(func_name, 1, 23) "..."
-        }
-
-        # Color coding based on time
-        time_color = white
-        if (time_ms > 20) time_color = red
-        else if (time_ms > 5) time_color = yellow
-
-        # Create visual load bar (each block = 5%)
-        load_bar = ""
-        blocks = int(percent / 5)
-        for (i = 0; i < blocks && i < 20; i++) {
-            load_bar = load_bar "█"
-        }
-
-        # Print formatted row
-        printf "%s│%s  %-28s %s%9.2f ms%s %6d  %s%-12s%s %s│%s\n",
-            purple, dim, func_name, time_color, time_ms, reset, calls,
-            time_color, load_bar, reset, purple, reset
-
+        funcs[count]      = func_name
+        times[count]      = time_ms
+        all_calls[count]  = calls
+        percents[count]   = percent
         count++
+    }
+
+    END {
+        # Selection sort by percent descending
+        for (i = 0; i < count - 1; i++) {
+            max_idx = i
+            for (j = i + 1; j < count; j++) {
+                if (percents[j] > percents[max_idx]) max_idx = j
+            }
+            if (max_idx != i) {
+                tmp = funcs[i];     funcs[i] = funcs[max_idx];         funcs[max_idx] = tmp
+                tmp = times[i];     times[i] = times[max_idx];         times[max_idx] = tmp
+                tmp = all_calls[i]; all_calls[i] = all_calls[max_idx]; all_calls[max_idx] = tmp
+                tmp = percents[i];  percents[i] = percents[max_idx];   percents[max_idx] = tmp
+            }
+        }
+
+        limit = count < max_entries ? count : max_entries
+        for (i = 0; i < limit; i++) {
+            func_name = funcs[i]
+            time_ms   = times[i]
+            calls     = all_calls[i]
+            percent   = percents[i]
+
+            time_color = white
+            if (time_ms > 20) time_color = red
+            else if (time_ms > 5) time_color = yellow
+
+            # Build load bar with explicit padding (avoids UTF-8 byte/char mismatch in %-Ns)
+            blocks = int(percent / 5)
+            if (blocks > 12) blocks = 12
+            load_bar = ""; for (j = 0; j < blocks; j++) load_bar = load_bar "█"
+            pad      = ""; for (j = blocks; j < 12; j++) pad = pad " "
+
+            printf "%s│%s  %-28s %s%9.2f ms%s %6d  %s%s%s%s %s│%s\n",
+                purple, dim, func_name, time_color, time_ms, reset, calls,
+                time_color, load_bar, pad, reset, purple, reset
+        }
     }
     '
 
