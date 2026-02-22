@@ -1,3 +1,16 @@
+# ============================================================================
+# ZSH Benchmark Configuration (Optional)
+# ============================================================================
+# Uncomment the line below to enable startup benchmarking
+# export ZSH_BENCHMARK="Yes"
+
+# Benchmark initialization (only if enabled)
+if [[ "$ZSH_BENCHMARK" == "Yes" ]]; then
+    zmodload zsh/datetime
+    zmodload zsh/zprof 2>/dev/null
+    typeset -g _zsh_load_start=$EPOCHREALTIME
+fi
+
 # Load secrets
 [ -f ~/.secrets ] && source ~/.secrets
 
@@ -123,7 +136,7 @@ bindkey '^[[3~' delete-char
 zle_highlight+=(paste:none)
 
 ### Environment variables 
-export PATH=$HOME/.local/bin:/usr/local/bin:$PATH
+export PATH=$HOME/.local/bin:/usr/bin:/usr/local/bin:$PATH
 
 # Path to your oh-my-zsh installation.
 export ZSH="$HOME/.oh-my-zsh"
@@ -228,3 +241,17 @@ if [ -f '$HOME/yandex-cloud/completion.zsh.inc' ]; then source '$HOME/yandex-clo
 
 # Activate mise
 [ -f "$HOME/.local/bin/mise" ] && eval "$($HOME/.local/bin/mise activate zsh)"
+
+# ============================================================================
+# ZSH Benchmark Report (if enabled)
+# ============================================================================
+if [[ "$ZSH_BENCHMARK" == "Yes" ]]; then
+    # Capture end time immediately to avoid measuring benchmark code itself
+    typeset -g _zsh_load_end=$EPOCHREALTIME
+    typeset -g total_ms=$(( (_zsh_load_end - _zsh_load_start) * 1000 ))
+
+    # Source benchmark UI module
+    local BENCH_UI="${${(%):-%x}:A:h}/benchmark.zsh"
+    [[ -r "$BENCH_UI" ]] && source "$BENCH_UI" || \
+        printf "\n⚠️  Benchmark enabled but UI not found at: %s\n" "$BENCH_UI"
+fi
