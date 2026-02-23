@@ -254,4 +254,9 @@ if [[ "$ZSH_BENCHMARK" == "Yes" ]]; then
     local BENCH_UI="${${(%):-%x}:A:h}/benchmark.zsh"
     [[ -r "$BENCH_UI" ]] && source "$BENCH_UI" || \
         printf "\n⚠️  Benchmark enabled but UI not found at: %s\n" "$BENCH_UI"
+
+    # Ask user whether to close the benchmark session
+    local _bench_reply
+    read -r "?Close benchmark session? [Y/n] " _bench_reply
+    [[ -z "$_bench_reply" || "$_bench_reply" =~ ^[Yy]$ ]] && exit
 fi
