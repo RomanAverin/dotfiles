@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Dotfiles Manager - manage dotfiles with GNU Stow
+Dotfiles Manager - manage dotfiles via native symlinks
 
-Script for automating configuration file management using GNU Stow.
+Script for automating configuration file management using native symlinks.
 Supports installation, removal, updates of symlinks, and Git integration.
 
 Uses only Python 3.6+ standard library
@@ -19,6 +19,7 @@ import sys
 import json
 from datetime import datetime
 import os
+import fnmatch
 
 
 @dataclass
@@ -50,7 +51,7 @@ class Config:
 
 
 class DotfilesManager:
-    """Main class for managing dotfiles via stow"""
+    """Main class for managing dotfiles via native symlinks"""
 
     def __init__(self, config: Config):
         self.config = config
@@ -63,14 +64,11 @@ class DotfilesManager:
     # ========== Utilities and checks ==========
 
     def check_dependencies(self) -> bool:
-        """Check if stow and git are installed"""
-        try:
-            subprocess.run(["stow", "--version"], capture_output=True, check=True)
-            return True
-        except (subprocess.CalledProcessError, FileNotFoundError):
-            self._print_error("GNU Stow is not installed!")
-            self._print_info("Install with: sudo dnf install stow")
+        """Check if git is installed"""
+        if not self._check_git():
+            self._print_error("git is not installed!")
             return False
+        return True
 
     def _check_git(self) -> bool:
         """Check if git is installed"""
@@ -708,33 +706,47 @@ class DotfilesManager:
 
         return files
 
+    DEFAULT_IGNORE = [
+        ".gitkeep",
+        ".gitignore",
+        ".git",
+        "*~",
+        "#*#",
+    ]
+
+    def _get_ignore_patterns(self, package_dir: Path) -> List[str]:
+        """Read .stow-local-ignore from package dir, or return defaults"""
+        ignore_file = package_dir / ".stow-local-ignore"
+        if ignore_file.exists():
+            lines = ignore_file.read_text(encoding="utf-8").splitlines()
+            return [l.strip() for l in lines if l.strip() and not l.startswith("#")]
+        return list(self.DEFAULT_IGNORE)
+
+    def _should_ignore_file(self, rel_path: Path, patterns: List[str]) -> bool:
+        """Check if rel_path matches any ignore pattern"""
+        name = rel_path.name
+        path_str = str(rel_path)
+        for pattern in patterns:
+            if fnmatch.fnmatch(name, pattern) or fnmatch.fnmatch(path_str, pattern):
+                return True
+        return False
+
+    def _compute_rel_symlink(self, src: Path, dst: Path) -> Path:
+        """Compute relative path from dst.parent to src for portable symlinks"""
+        return Path(os.path.relpath(src, dst.parent))
+
     def _dry_run_stow(
         self, operation: str, package: str, target_dir: Optional[Path] = None
     ) -> Tuple[bool, str]:
-        """Simulate stow operation via -n"""
+        """Simulate symlink operation (dry-run)"""
         if target_dir is None:
             target_dir = self.config.target_dir
 
-        cmd = ["stow", "-n", "-v"]
-
         if operation == "install":
-            cmd.extend(["-R", "-t", str(target_dir), package])
+            return self._link_package(package, target_dir, dry_run=True)
         elif operation == "uninstall":
-            cmd.extend(["-D", "-t", str(target_dir), package])
-        else:
-            return False, f"Unknown operation: {operation}"
-
-        try:
-            result = subprocess.run(
-                cmd,
-                cwd=str(self.config.dotfiles_dir),
-                capture_output=True,
-                text=True,
-                check=True,
-            )
-            return True, result.stderr
-        except subprocess.CalledProcessError as e:
-            return False, e.stderr
+            return self._unlink_package(package, target_dir, dry_run=True)
+        return False, f"Unknown operation: {operation}"
 
     def _check_conflicts(
         self, package: str, target_dir: Optional[Path] = None
@@ -846,6 +858,116 @@ class DotfilesManager:
         self._print_success(f"Backup created: {backup_root}")
         return backup_root
 
+    # ========== Symlink operations ==========
+
+    def _link_package(
+        self, package: str, target_dir: Path, dry_run: bool = False
+    ) -> Tuple[bool, str]:
+        """Create symlinks for all files in package (replaces stow -R)"""
+        package_dir = self.config.dotfiles_dir / package
+        if not package_dir.exists():
+            return False, f"Package directory not found: {package_dir}"
+
+        patterns = self._get_ignore_patterns(package_dir)
+        output_lines = []
+
+        try:
+            for item in sorted(package_dir.rglob("*")):
+                if not item.is_file():
+                    continue
+                rel_path = item.relative_to(package_dir)
+                if self._should_ignore_file(rel_path, patterns):
+                    continue
+
+                src = item.resolve()
+                dst = target_dir / rel_path
+                rel_src = self._compute_rel_symlink(src, dst)
+
+                if dst.is_symlink():
+                    if dst.resolve() == src:
+                        output_lines.append(f"SKIP (already linked): {dst}")
+                        continue
+                    else:
+                        output_lines.append(f"RELINK: {dst} -> {rel_src}")
+                        if not dry_run:
+                            dst.unlink()
+                elif dst.exists():
+                    output_lines.append(f"CONFLICT (file exists): {dst}")
+
+                output_lines.append(f"LINK: {dst} -> {rel_src}")
+                if not dry_run:
+                    dst.parent.mkdir(parents=True, exist_ok=True)
+                    dst.symlink_to(rel_src)
+
+        except OSError as e:
+            return False, f"Error: {e}"
+
+        return True, "\n".join(output_lines)
+
+    def _unlink_package(
+        self, package: str, target_dir: Path, dry_run: bool = False
+    ) -> Tuple[bool, str]:
+        """Remove symlinks for all files in package (replaces stow -D)"""
+        package_dir = self.config.dotfiles_dir / package
+        if not package_dir.exists():
+            return False, f"Package directory not found: {package_dir}"
+
+        patterns = self._get_ignore_patterns(package_dir)
+        output_lines = []
+
+        try:
+            for item in sorted(package_dir.rglob("*")):
+                if not item.is_file():
+                    continue
+                rel_path = item.relative_to(package_dir)
+                if self._should_ignore_file(rel_path, patterns):
+                    continue
+
+                src = item.resolve()
+                dst = target_dir / rel_path
+
+                if dst.is_symlink() and dst.resolve() == src:
+                    output_lines.append(f"UNLINK: {dst}")
+                    if not dry_run:
+                        dst.unlink()
+
+        except OSError as e:
+            return False, f"Error: {e}"
+
+        return True, "\n".join(output_lines)
+
+    def _adopt_package(self, package: str, target_dir: Path) -> bool:
+        """Move existing target files into package and replace with symlinks (replaces stow --adopt)"""
+        package_dir = self.config.dotfiles_dir / package
+        if not package_dir.exists():
+            return False
+
+        patterns = self._get_ignore_patterns(package_dir)
+
+        try:
+            for item in sorted(package_dir.rglob("*")):
+                if not item.is_file():
+                    continue
+                rel_path = item.relative_to(package_dir)
+                if self._should_ignore_file(rel_path, patterns):
+                    continue
+
+                src = item
+                dst = target_dir / rel_path
+
+                if dst.exists() and not dst.is_symlink():
+                    src.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.move(str(dst), str(src))
+                    rel_src = self._compute_rel_symlink(src.resolve(), dst)
+                    dst.parent.mkdir(parents=True, exist_ok=True)
+                    dst.symlink_to(rel_src)
+
+        except OSError as e:
+            self._print_error(f"Adopt error: {e}")
+            return False
+
+        return True
+
     # ========== Core stow operations ==========
 
     def install(
@@ -953,16 +1075,8 @@ class DotfilesManager:
                 continue
 
             target_dir = self._get_target_dir(package, custom_target)
-            cmd = ["stow", "-v", "-R", "-t", str(target_dir), package]
-
-            try:
-                result = subprocess.run(
-                    cmd,
-                    cwd=str(self.config.dotfiles_dir),
-                    capture_output=True,
-                    text=True,
-                    check=True,
-                )
+            success, output = self._link_package(package, target_dir, dry_run=False)
+            if success:
                 self._print_success(f"Package '{package}' installed")
                 self._log("SUCCESS", f"Package '{package}' installed successfully")
 
@@ -971,14 +1085,13 @@ class DotfilesManager:
                     self._update_package_target_in_config(package, custom_target, dry_run=False)
                     self._print_info(f"Saved custom target for '{package}': {custom_target}")
 
-                if self.config.verbose and result.stderr:
-                    print(result.stderr)
-
-            except subprocess.CalledProcessError as e:
+                if self.config.verbose and output:
+                    print(output)
+            else:
                 self._print_error(f"Error installing '{package}'")
-                self._log("ERROR", f"Failed to install '{package}': {e.stderr}")
-                if e.stderr:
-                    print(e.stderr, file=sys.stderr)
+                self._log("ERROR", f"Failed to install '{package}': {output}")
+                if output:
+                    print(output, file=sys.stderr)
 
     def uninstall(
         self, packages: List[str], dry_run: bool = False, custom_target: Optional[str] = None
@@ -1039,27 +1152,18 @@ class DotfilesManager:
                 continue
 
             target_dir = self._get_target_dir(package, custom_target)
-            cmd = ["stow", "-v", "-D", "-t", str(target_dir), package]
-
-            try:
-                result = subprocess.run(
-                    cmd,
-                    cwd=str(self.config.dotfiles_dir),
-                    capture_output=True,
-                    text=True,
-                    check=True,
-                )
+            success, output = self._unlink_package(package, target_dir, dry_run=False)
+            if success:
                 self._print_success(f"Package '{package}' removed")
                 self._log("SUCCESS", f"Package '{package}' uninstalled successfully")
 
-                if self.config.verbose and result.stderr:
-                    print(result.stderr)
-
-            except subprocess.CalledProcessError as e:
+                if self.config.verbose and output:
+                    print(output)
+            else:
                 self._print_error(f"Error removing '{package}'")
-                self._log("ERROR", f"Failed to uninstall '{package}': {e.stderr}")
-                if e.stderr:
-                    print(e.stderr, file=sys.stderr)
+                self._log("ERROR", f"Failed to uninstall '{package}': {output}")
+                if output:
+                    print(output, file=sys.stderr)
 
     def restow(
         self,
@@ -1125,16 +1229,8 @@ class DotfilesManager:
         print()
         for package in valid_packages:
             target_dir = self._get_target_dir(package, custom_target)
-            cmd = ["stow", "-v", "--adopt", "-t", str(target_dir), package]
-
-            try:
-                result = subprocess.run(
-                    cmd,
-                    cwd=str(self.config.dotfiles_dir),
-                    capture_output=True,
-                    text=True,
-                    check=True,
-                )
+            success = self._adopt_package(package, target_dir)
+            if success:
                 self._print_success(f"Package '{package}' adopted")
                 self._log("SUCCESS", f"Package '{package}' adopted successfully")
 
@@ -1142,15 +1238,9 @@ class DotfilesManager:
                 if save_target and custom_target:
                     self._update_package_target_in_config(package, custom_target, dry_run=False)
                     self._print_info(f"Saved custom target for '{package}': {custom_target}")
-
-                if self.config.verbose and result.stderr:
-                    print(result.stderr)
-
-            except subprocess.CalledProcessError as e:
+            else:
                 self._print_error(f"Error adopting '{package}'")
-                self._log("ERROR", f"Failed to adopt '{package}': {e.stderr}")
-                if e.stderr:
-                    print(e.stderr, file=sys.stderr)
+                self._log("ERROR", f"Failed to adopt '{package}'")
 
         # Git integration
         if git_commit and self._check_git():
