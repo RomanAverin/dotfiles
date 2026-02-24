@@ -5,8 +5,8 @@ font-size = 13
 
 ### Shell
 shell-integration = detect
-shell-integration-features = cursor,sudo,title
-# shell-integration-features = true 
+# shell-integration-features = cursor,sudo,title
+shell-integration-features = true 
 command = tmux new-session -A -s main || tmux
 
 ### Window
@@ -53,11 +53,6 @@ keybind = performable:ctrl+c=copy_to_clipboard
 keybind = ctrl+v=paste_from_clipboard
 
 ### Other
-# copy-on-select = clipboard
-app-notifications = no-clipboard-copy
+app-notifications = false
 clipboard-write = allow
 clipboard-read = allow
-
-# Vim mode
-# command-palette-entry = title:Vim Mode, action:activate_key_table:vim
-# keybind = alt+v=activate_key_table:vim
