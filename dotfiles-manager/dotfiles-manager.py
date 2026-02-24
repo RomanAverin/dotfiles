@@ -735,19 +735,6 @@ class DotfilesManager:
         """Compute relative path from dst.parent to src for portable symlinks"""
         return Path(os.path.relpath(src, dst.parent))
 
-    def _dry_run_stow(
-        self, operation: str, package: str, target_dir: Optional[Path] = None
-    ) -> Tuple[bool, str]:
-        """Simulate symlink operation (dry-run)"""
-        if target_dir is None:
-            target_dir = self.config.target_dir
-
-        if operation == "install":
-            return self._link_package(package, target_dir, dry_run=True)
-        elif operation == "uninstall":
-            return self._unlink_package(package, target_dir, dry_run=True)
-        return False, f"Unknown operation: {operation}"
-
     def _check_conflicts(
         self, package: str, target_dir: Optional[Path] = None
     ) -> List[Tuple[Path, Path]]:
@@ -977,7 +964,7 @@ class DotfilesManager:
         custom_target: Optional[str] = None,
         save_target: bool = False,
     ):
-        """Install symlinks via stow -R"""
+        """Install symlinks for packages"""
         # Validation for save_target
         if save_target and not custom_target:
             self._print_error("--save-target requires -t/--target option")
@@ -1026,13 +1013,11 @@ class DotfilesManager:
         self._print_info("Analyzing changes...")
         dry_run_results = {}
         for package in valid_packages:
-            # Sudo packages don't use stow, skip dry-run
             if package in self.config.sudo_packages:
-                dry_run_results[package] = (True, "sudo package - no stow dry-run")
+                dry_run_results[package] = (True, "sudo package")
             else:
                 target_dir = self._get_target_dir(package, custom_target)
-                success, output = self._dry_run_stow("install", package, target_dir)
-                dry_run_results[package] = (success, output)
+                dry_run_results[package] = self._link_package(package, target_dir, dry_run=True)
 
         # Preview
         self._show_preview("install", valid_packages, dry_run_results, custom_target)
@@ -1096,7 +1081,7 @@ class DotfilesManager:
     def uninstall(
         self, packages: List[str], dry_run: bool = False, custom_target: Optional[str] = None
     ):
-        """Remove symlinks via stow -D"""
+        """Remove symlinks for packages"""
         self._log("INFO", f"Starting uninstall operation for: {', '.join(packages)}")
 
         # Parse package specifications (format: package or package:file)
@@ -1122,13 +1107,11 @@ class DotfilesManager:
         self._print_info("Analyzing changes...")
         dry_run_results = {}
         for package in valid_packages:
-            # Sudo packages don't use stow, skip dry-run
             if package in self.config.sudo_packages:
-                dry_run_results[package] = (True, "sudo package - no stow dry-run")
+                dry_run_results[package] = (True, "sudo package")
             else:
                 target_dir = self._get_target_dir(package, custom_target)
-                success, output = self._dry_run_stow("uninstall", package, target_dir)
-                dry_run_results[package] = (success, output)
+                dry_run_results[package] = self._unlink_package(package, target_dir, dry_run=True)
 
         # Preview
         self._show_preview("uninstall", valid_packages, dry_run_results, custom_target)
@@ -1183,7 +1166,7 @@ class DotfilesManager:
         custom_target: Optional[str] = None,
         save_target: bool = False,
     ):
-        """Move existing configs to dotfiles via stow --adopt"""
+        """Move existing configs into dotfiles and replace with symlinks"""
         # Validation for save_target
         if save_target and not custom_target:
             self._print_error("--save-target requires -t/--target option")
