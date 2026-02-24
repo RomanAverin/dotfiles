@@ -678,7 +678,7 @@ class DotfilesManager:
     def _log(self, level: str, msg: str):
         """Write to log file with timestamp"""
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        log_file = self.config.log_dir / f"stow-manager-{datetime.now():%Y%m%d}.log"
+        log_file = self.config.log_dir / f"dotfiles-manager-{datetime.now():%Y%m%d}.log"
 
         with open(log_file, "a", encoding="utf-8") as f:
             f.write(f"[{timestamp}] {level}: {msg}\n")
@@ -850,7 +850,7 @@ class DotfilesManager:
     def _link_package(
         self, package: str, target_dir: Path, dry_run: bool = False
     ) -> Tuple[bool, str]:
-        """Create symlinks for all files in package (replaces stow -R)"""
+        """Create symlinks for all files in package"""
         package_dir = self.config.dotfiles_dir / package
         if not package_dir.exists():
             return False, f"Package directory not found: {package_dir}"
@@ -894,7 +894,7 @@ class DotfilesManager:
     def _unlink_package(
         self, package: str, target_dir: Path, dry_run: bool = False
     ) -> Tuple[bool, str]:
-        """Remove symlinks for all files in package (replaces stow -D)"""
+        """Remove symlinks for all files in package"""
         package_dir = self.config.dotfiles_dir / package
         if not package_dir.exists():
             return False, f"Package directory not found: {package_dir}"
@@ -924,7 +924,7 @@ class DotfilesManager:
         return True, "\n".join(output_lines)
 
     def _adopt_package(self, package: str, target_dir: Path) -> bool:
-        """Move existing target files into package and replace with symlinks (replaces stow --adopt)"""
+        """Move existing target files into package and replace with symlinks"""
         package_dir = self.config.dotfiles_dir / package
         if not package_dir.exists():
             return False
@@ -955,7 +955,7 @@ class DotfilesManager:
 
         return True
 
-    # ========== Core stow operations ==========
+    # ========== Core operations ==========
 
     def install(
         self,
@@ -1050,7 +1050,6 @@ class DotfilesManager:
         if all_conflicts:
             self._create_backup(all_conflicts)
 
-        # Execute stow
         print()
         for package in valid_packages:
             # Special handling for sudo packages
@@ -1125,7 +1124,6 @@ class DotfilesManager:
             self._print_warning("Operation cancelled")
             return
 
-        # Execute stow
         print()
         for package in valid_packages:
             # Special handling for sudo packages
@@ -1208,7 +1206,6 @@ class DotfilesManager:
             self._print_warning("Operation cancelled")
             return
 
-        # Execute stow --adopt
         print()
         for package in valid_packages:
             target_dir = self._get_target_dir(package, custom_target)
