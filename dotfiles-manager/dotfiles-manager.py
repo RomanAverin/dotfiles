@@ -158,13 +158,16 @@ class DotfilesManager:
 
         path = Path(from_path).expanduser()
 
+        # For a single file, use its parent directory for structure detection
+        path_for_structure = path.parent if path.is_file() else path
+
         # Determine relative path from HOME
         try:
             home = Path.home()
-            rel_path = path.relative_to(home)
+            rel_path = path_for_structure.relative_to(home)
         except ValueError:
             # Path not relative to HOME (e.g., /etc/)
-            return ("sudo", path)
+            return ("sudo", path_for_structure)
 
         # Analyze path
         parts = rel_path.parts
@@ -1665,13 +1668,48 @@ class DotfilesManager:
             from_full_path = Path(from_path).expanduser()
             if from_full_path.exists():
                 print()
-                self._print_info(f"Adopting files from {from_path}...")
-                try:
-                    self.adopt([package_name], git_commit=False)
-                    adopted = True
-                except Exception as e:
-                    self._print_warning(f"Adopt failed: {e}")
-                    self._print_info("You can run adopt manually later")
+                if from_full_path.is_file():
+                    # Single file: move directly to package and create symlink
+                    self._print_info(f"Adopting file from {from_path}...")
+                    try:
+                        if structure_type == "sudo":
+                            package_dir = self.config.dotfiles_dir / "sudo_packages" / package_name
+                        else:
+                            package_dir = self.config.dotfiles_dir / package_name
+
+                        home = Path.home()
+                        rel_from_home = from_full_path.relative_to(home)
+                        dest_in_package = package_dir / rel_from_home
+
+                        # Remove .gitkeep if present in destination directory
+                        gitkeep = dest_in_package.parent / ".gitkeep"
+                        if gitkeep.exists():
+                            gitkeep.unlink()
+
+                        # Create parent dirs if needed
+                        dest_in_package.parent.mkdir(parents=True, exist_ok=True)
+
+                        # Move file to dotfiles
+                        shutil.move(str(from_full_path), str(dest_in_package))
+
+                        # Create absolute symlink at original location
+                        from_full_path.symlink_to(dest_in_package)
+
+                        adopted = True
+                        self._print_success(f"Moved: {from_path} → {dest_in_package}")
+                        self._print_success(f"Symlink: {from_path} → {dest_in_package}")
+                    except Exception as e:
+                        self._print_warning(f"File adoption failed: {e}")
+                        self._print_info("You can run adopt manually later")
+                else:
+                    # Directory: use existing adopt() mechanism
+                    self._print_info(f"Adopting files from {from_path}...")
+                    try:
+                        self.adopt([package_name], git_commit=False)
+                        adopted = True
+                    except Exception as e:
+                        self._print_warning(f"Adopt failed: {e}")
+                        self._print_info("You can run adopt manually later")
             else:
                 self._print_warning(f"Path does not exist: {from_path}")
                 self._print_info("Package structure created, but no files adopted")
@@ -2187,7 +2225,7 @@ Examples:
         "--from",
         dest="from_path",
         metavar="PATH",
-        help="Path to existing config (e.g., ~/.aider or ~/.config/alacritty). Automatically determines structure and adopts files."
+        help="Path to existing config directory or single file (e.g., ~/.gitignore, ~/.aider, ~/.config/alacritty). Automatically determines structure and adopts files."
     )
     new_parser.add_argument(
         "--sudo",
