@@ -184,6 +184,12 @@ alias ollama='f() { if [ "$1" = "stop" ]; then
 alias dotfiles="~/dotfiles/dotfiles-manager/dotfiles-manager.py"
 
 # fnm (Fast Node Manager)
+#
+FNM_PATH="/home/rastler/.local/share/fnm"
+if [ -d "$FNM_PATH" ]; then
+  export PATH="$FNM_PATH:$PATH"
+fi
+
 eval "$(fnm env --use-on-cd --shell zsh)"
 
 # Golang
@@ -259,4 +265,11 @@ if [[ "$ZSH_BENCHMARK" == "Yes" ]]; then
     local _bench_reply
     read -r "?Close benchmark session? [Y/n] " _bench_reply
     [[ -z "$_bench_reply" || "$_bench_reply" =~ ^[Yy]$ ]] && exit
+fi
+
+# fnm
+FNM_PATH="/home/rastler/.local/share/fnm"
+if [ -d "$FNM_PATH" ]; then
+  export PATH="$FNM_PATH:$PATH"
+  eval "`fnm env`"
 fi
