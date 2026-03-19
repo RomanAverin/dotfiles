@@ -43,6 +43,24 @@ _fix_compinit_insecure_dirs() {
 
 # Run the fix before compinit initialization
 # _fix_compinit_insecure_dirs
+#
+
+# Run to fix a broken completions
+function zinit-fix-completions() {
+  local broken
+  broken=$(find ~/.local/share/zinit/completions -xtype l)
+  
+  if [[ -z "$broken" ]]; then
+    echo "No broken completions found"
+    return 0
+  fi
+
+  echo "Removing broken completions:"
+  echo "$broken"
+  find ~/.local/share/zinit/completions -xtype l -delete
+  echo "Done. Restarting shell..."
+  exec zsh
+}
 
 # Early compinit initialization with caching for OMZ plugins
 # This prevents "compdef: command not found" errors from OMZ snippets
