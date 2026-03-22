@@ -71,6 +71,12 @@ else
   compinit -C -d "${ZSH_CACHE_DIR}/compdump"
 fi
 
+# Setup of a cursor shape
+reset-cursor() {
+    echo -ne '\e[6 q'
+}
+precmd_functions+=(reset-cursor)
+
 # Add Starship
 zinit ice as"command" from"gh-r" \
           atclone"./starship init zsh > init.zsh; ./starship completions zsh > _starship" \
@@ -98,6 +104,7 @@ zinit snippet OMZP::docker
 zinit snippet OMZP::docker-compose
 zinit snippet OMZP::rust
 zinit snippet OMZP::virtualenv
+zinit snippet OMZP::mise
 zinit snippet OMZP::uv
 
 
