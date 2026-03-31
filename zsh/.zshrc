@@ -253,6 +253,9 @@ export FZF_DEFAULT_OPTS=$FZF_DEFAULT_OPTS'
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 source <(fzf --zsh)
 
+# Set up tms
+source <(COMPLETE=zsh tms)
+
 # Set up zoxide as default cd command
 # eval "$(zoxide init --cmd cd zsh)"
 eval "$(zoxide init zsh)"
