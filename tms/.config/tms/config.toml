@@ -1,0 +1,20 @@
+default_session = "main"
+excluded_dirs = [
+    "node_modules",
+    "target",
+    ".cache",
+    "build",
+]
+bookmarks = ["/home/rastler"]
+
+[[search_dirs]]
+path = "/home/rastler/Develop"
+depth = 1
+
+[picker_colors]
+highlight_color = "#ffffff"
+highlight_text_color = "#282a36"
+border_color = "#5F6366"
+info_color = "#B689BC"
+prompt_color = "#EFC986"
+

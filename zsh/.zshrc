@@ -4,6 +4,7 @@
 # Uncomment the line below to enable startup benchmarking
 # export ZSH_BENCHMARK="Yes"
 
+
 # Benchmark initialization (only if enabled)
 if [[ "$ZSH_BENCHMARK" == "Yes" ]]; then
     zmodload zsh/datetime
@@ -301,3 +302,5 @@ if [ -d "$FNM_PATH" ]; then
   export PATH="$FNM_PATH:$PATH"
   eval "`fnm env`"
 fi
+
+export PATH=/opt/nvim-linux-x86_64/bin:$PATH

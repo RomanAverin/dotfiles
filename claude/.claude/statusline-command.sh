@@ -21,7 +21,7 @@ fi
 git_branch=""
 git_status_info=""
 git_state_info=""
-if git -C "$current_dir" rev-parse --git-dir > /dev/null 2>&1; then
+if git -C "$current_dir" rev-parse --git-dir >/dev/null 2>&1; then
   # Get branch name
   git_branch=$(git -C "$current_dir" branch --show-current 2>/dev/null)
   if [ -z "$git_branch" ]; then
@@ -89,35 +89,25 @@ fi
 
 # Token usage and context information
 token_info=""
-context_used=$(echo "$input" | jq -r '.usage.context_used // empty' 2>/dev/null)
-context_limit=$(echo "$input" | jq -r '.usage.context_limit // empty' 2>/dev/null)
-input_tokens=$(echo "$input" | jq -r '.usage.input_tokens // empty' 2>/dev/null)
-output_tokens=$(echo "$input" | jq -r '.usage.output_tokens // empty' 2>/dev/null)
+used_pct=$(echo "$input" | jq -r '.context_window.used_percentage // empty' 2>/dev/null)
+remaining_pct=$(echo "$input" | jq -r '.context_window.remaining_percentage // empty' 2>/dev/null)
 
-if [ -n "$context_used" ] && [ -n "$context_limit" ]; then
-  # Calculate percentage
-  context_percent=$(awk "BEGIN {printf \"%.0f\", ($context_used/$context_limit)*100}")
-  token_info="${context_used}/${context_limit} (${context_percent}%)"
-elif [ -n "$input_tokens" ] || [ -n "$output_tokens" ]; then
-  # Fallback to input/output tokens if context info not available
-  total_tokens=$((input_tokens + output_tokens))
-  if [ "$total_tokens" -gt 0 ]; then
-    token_info="${total_tokens}tk"
-  fi
+if [ -n "$used_pct" ] && [ -n "$remaining_pct" ]; then
+  used_int=$(printf "%.0f" "$used_pct")
+  # remaining_int=$(printf "%.0f" "$remaining_pct")
+  token_info="ctx: ${used_int}% used "
 fi
 
-# Cost information
-cost_info=""
-session_cost=$(echo "$input" | jq -r '.cost.session // .costs.session // empty' 2>/dev/null)
-total_cost=$(echo "$input" | jq -r '.cost.total // .costs.total // empty' 2>/dev/null)
+# Rate limit information
+rate_info=""
+five_hour_pct=$(echo "$input" | jq -r '.rate_limits.five_hour.used_percentage // empty' 2>/dev/null)
+seven_day_pct=$(echo "$input" | jq -r '.rate_limits.seven_day.used_percentage // empty' 2>/dev/null)
 
-if [ -n "$session_cost" ]; then
-  cost_info="\$${session_cost}"
-  if [ -n "$total_cost" ]; then
-    cost_info="${cost_info} (Σ\$${total_cost})"
-  fi
-elif [ -n "$total_cost" ]; then
-  cost_info="\$${total_cost}"
+if [ -n "$five_hour_pct" ] || [ -n "$seven_day_pct" ]; then
+  rate_parts=""
+  [ -n "$five_hour_pct" ] && rate_parts+="5h:$(printf '%.0f' "$five_hour_pct")%"
+  [ -n "$seven_day_pct" ] && rate_parts+=" 7d:$(printf '%.0f' "$seven_day_pct")%"
+  rate_info="${rate_parts}"
 fi
 
 # Build status line with colors (using printf for ANSI codes)
@@ -156,9 +146,9 @@ if [ -n "$token_info" ]; then
   output+=" $(printf '\033[33m%s\033[0m' "$token_info")"
 fi
 
-# Cost information in green
-if [ -n "$cost_info" ]; then
-  output+=" $(printf '\033[32m%s\033[0m' "$cost_info")"
+# Rate limit information in magenta
+if [ -n "$rate_info" ]; then
+  output+=" $(printf '\033[35m%s\033[0m' "$rate_info")"
 fi
 
 echo "$output"
