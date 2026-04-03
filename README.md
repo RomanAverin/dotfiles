@@ -12,6 +12,13 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh # Rust installati
 cargo install tlrc
 ```
 
+## Install a dotfiles
+
+```
+stow tmux vim startship
+
+```
+
 ## Neovim configurations in a separate repository
 
 ```bash
