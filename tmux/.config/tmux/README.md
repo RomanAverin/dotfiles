@@ -55,7 +55,7 @@ tmux kill-server && rm -rf /tmp/tmux-*
 Enable plugins
 
 ```shell
-git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+git clone https://github.com/RyanMacG/tpm-redux.git ~/.local/share/tmux/plugins/tpm
 ```
 
 ## Essential Shortcuts
