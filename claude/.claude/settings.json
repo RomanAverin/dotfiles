@@ -22,7 +22,6 @@
       "Write(.env)"
     ]
   },
-  "model": "opus",
   "statusLine": {
     "type": "command",
     "command": "bash /home/rastler/.claude/statusline-command.sh"
