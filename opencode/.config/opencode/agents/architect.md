@@ -1,7 +1,7 @@
 ---
 description: Reviews code and proposes architectural improvements without making changes. Focuses on module boundaries, coupling/cohesion, abstractions, error handling strategies, concurrency models, and long-term maintainability.
 mode: subagent
-model: openai/gpt-5.3-codex
+model: moonshotai/kimi-k2.6
 temperature: 0.2
 permission:
   edit: deny

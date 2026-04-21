@@ -11,6 +11,10 @@
     "chrome-devtools": {
       "type": "local",
       "command": ["npx", "-y", "chrome-devtools-mcp@latest"]
+    },
+    "serena": {
+      "type": "local",
+      "command": ["serena", "start-mcp-server", "--context=ide"]
     }
   },
   "provider": {
@@ -41,5 +45,8 @@
   },
   "watcher": {
     "ignore": ["node_modules/**", "dist/**", ".git/**"]
-  }
+  },
+  "plugin": [
+    "@tarquinen/opencode-dcp@latest"
+  ]
 }
