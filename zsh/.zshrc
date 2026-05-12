@@ -305,3 +305,6 @@ if [ -d "$FNM_PATH" ]; then
 fi
 
 export PATH=/opt/nvim-linux-x86_64/bin:$PATH
+
+# Codex 
+eval "$(codex completion zsh)"
