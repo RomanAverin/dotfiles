@@ -162,8 +162,6 @@ bindkey '^[[3~' delete-char
 zle_highlight+=(paste:none)
 
 ### Environment variables 
-export PATH=$HOME/.local/bin:/usr/bin:/usr/local/bin:$PATH
-
 # Path to your oh-my-zsh installation.
 export ZSH="$HOME/.oh-my-zsh"
 
@@ -209,33 +207,24 @@ alias ollama='f() { if [ "$1" = "stop" ]; then
 # Dotfiles-manager 
 alias dotfiles="~/dotfiles/dotfiles-manager/dotfiles-manager.py"
 
-# fnm (Fast Node Manager)
-#
-FNM_PATH="/home/rastler/.local/share/fnm"
-if [ -d "$FNM_PATH" ]; then
-  export PATH="$FNM_PATH:$PATH"
+# fnm: switch Node versions when entering a project. The fnm environment and
+# initial Node.js PATH are configured earlier in .zprofile for tmux.
+if (( $+commands[fnm] )); then
+  autoload -Uz add-zsh-hook
+  _fnm_autoload_hook() {
+    if [[ -f .node-version || -f .nvmrc || -f package.json ]]; then
+      fnm use --silent-if-unchanged
+    fi
+  }
+  add-zsh-hook chpwd _fnm_autoload_hook
+  _fnm_autoload_hook
 fi
 
-eval "$(fnm env --use-on-cd --shell zsh)"
-
-# Golang
-export GOPATH=$HOME/Develop/go
-export PATH=$HOME/Develop/go/bin:$PATH
-
-# Rust
-export PATH=$HOME/.cargo/bin:$PATH
-
-# Deno
-. "$HOME/.deno/env"
 # Add deno completions to search path
 # if [[ ":$FPATH:" != *":$HOME/.zsh/completions:"* ]]; then export FPATH="$HOME/.zsh/completions:$FPATH"; fi
 
 # bun completions
 [ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"
-
-# bun
-[ -s "$HOME/.bun" ] && export BUN_INSTALL="$HOME/.bun" 
-[ -f "$BUN_INSTALL/bin/bun" ] && export PATH="$BUN_INSTALL/bin:$PATH"
 
 # Fzf settings
 export FZF_DEFAULT_COMMAND="fd --type f --strip-cwd-prefix --hidden --follow --exclude .git --exclude .cache"
@@ -261,13 +250,6 @@ eval "$(zoxide init zsh)"
 # Set up python uv autocomplion
 eval "$(uv generate-shell-completion zsh)"
 
-# Added by LM Studio CLI (lms)
-export PATH="$PATH:$HOME/lmstudio/bin"
-# End of LM Studio CLI section
-
-# opencode
-export PATH=$HOME/.opencode/bin:$PATH
-
 # The next line enables shell command completion for yc.
 if [ -f '$HOME/yandex-cloud/completion.zsh.inc' ]; then source '$HOME/yandex-cloud/completion.zsh.inc'; fi
 
@@ -292,15 +274,6 @@ if [[ "$ZSH_BENCHMARK" == "Yes" ]]; then
     read -r "?Close benchmark session? [Y/n] " _bench_reply
     [[ -z "$_bench_reply" || "$_bench_reply" =~ ^[Yy]$ ]] && exit
 fi
-
-# fnm
-FNM_PATH="/home/rastler/.local/share/fnm"
-if [ -d "$FNM_PATH" ]; then
-  export PATH="$FNM_PATH:$PATH"
-  eval "`fnm env`"
-fi
-
-export PATH=/opt/nvim-linux-x86_64/bin:$PATH
 
 # Codex
 eval "$(codex completion zsh)"

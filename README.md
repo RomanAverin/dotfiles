@@ -15,9 +15,13 @@ cargo install tlrc
 ## Install a dotfiles
 
 ```
-stow tmux vim startship
+stow tmux vim startship zsh
 
 ```
+
+### Zsh PATH
+
+Keep all `PATH` setup in `zsh/.zprofile`, not `.zshrc`, so the login shell configures the environment before tmux starts. Restart the tmux server after changing it.
 
 ## Neovim configurations in a separate repository
 
