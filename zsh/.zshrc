@@ -254,10 +254,6 @@ export FZF_DEFAULT_OPTS=$FZF_DEFAULT_OPTS'
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 source <(fzf --zsh)
 
-# Set up tms
-# cargo install --git https://github.com/jrmoulton/tmux-sessionizer.git --tag v0.5.0
-source <(COMPLETE=zsh tms)
-
 # Set up zoxide as default cd command
 # eval "$(zoxide init --cmd cd zsh)"
 eval "$(zoxide init zsh)"
@@ -306,5 +302,7 @@ fi
 
 export PATH=/opt/nvim-linux-x86_64/bin:$PATH
 
-# Codex 
+# Codex
 eval "$(codex completion zsh)"
+fpath=(~/.zsh/completions $fpath)
+autoload -U compinit && compinit
