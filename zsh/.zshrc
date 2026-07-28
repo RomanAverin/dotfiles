@@ -12,6 +12,13 @@ if [[ "$ZSH_BENCHMARK" == "Yes" ]]; then
     typeset -g _zsh_load_start=$EPOCHREALTIME
 fi
 
+# A non-login interactive shell skips .zprofile, so initialize its fnm
+# multishell here. Login shells inherit FNM_MULTISHELL_PATH from .zprofile and
+# avoid creating a second multishell.
+if (( $+commands[fnm] )) && [[ -z ${FNM_MULTISHELL_PATH:-} ]]; then
+  eval "$(fnm env --shell zsh)"
+fi
+
 # Load secrets
 [ -f ~/.secrets ] && source ~/.secrets
 
@@ -207,8 +214,8 @@ alias ollama='f() { if [ "$1" = "stop" ]; then
 # Dotfiles-manager 
 alias dotfiles="~/dotfiles/dotfiles-manager/dotfiles-manager.py"
 
-# fnm: switch Node versions when entering a project. The fnm environment and
-# initial Node.js PATH are configured earlier in .zprofile for tmux.
+# fnm: switch Node versions when entering a project. Its environment is
+# initialized near the start of .zshrc or inherited from .zprofile.
 if (( $+commands[fnm] )); then
   autoload -Uz add-zsh-hook
   _fnm_autoload_hook() {
