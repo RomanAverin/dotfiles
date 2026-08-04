@@ -12,13 +12,11 @@
       "WebFetch",
       "WebSearch",
       "Read(.env.example)",
-      "Edit(.env.example)",
       "Write(.env.example)"
     ],
     "deny": [
       "Bash(rm -rf:*)",
       "Read(.env)",
-      "Edit(.env)",
       "Write(.env)"
     ]
   },
