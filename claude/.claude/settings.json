@@ -1,24 +1,42 @@
 {
-  "env": {
-    "ENABLE_TOOL_SEARCH": "auto:5",
-    "CLAUDE_CODE_MAX_OUTPUT_TOKENS": "60000"
-  },
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "model": "opus",
+  "fallbackModel": [
+    "claude-sonnet-5"
+  ],
+  "effortLevel": "high",
+  "tui": "fullscreen",
   "permissions": {
+    "defaultMode": "default",
     "allow": [
-      "Bash(npm run:*)",
       "Bash(pnpm:*)",
       "Bash(git:*)",
-      "Edit(src/**)",
       "WebFetch",
       "WebSearch",
-      "Read(.env.example)",
-      "Write(.env.example)"
+      "Edit(src/**)",
+      "Read(repos/**)",
+      "Edit(repos/**)",
+      "Read(./.env.example)",
+      "Edit(./.env.example)"
+    ],
+    "ask": [
+      "Bash(git push:*)",
+      "Bash(git reset --hard:*)"
     ],
     "deny": [
+      "Read(./.env)",
+      "Read(.env.local)",
+      "Read(.env.production)",
+      "Read(secrets/**)",
+      "Edit(./.env)",
+      "Edit(.env.local)",
       "Bash(rm -rf:*)",
-      "Read(.env)",
-      "Write(.env)"
+      "Bash(sudo:*)"
     ]
+  },
+  "sandbox": {
+    "enabled": true,
+    "autoAllowBashIfSandboxed": true
   },
   "statusLine": {
     "type": "command",
@@ -31,6 +49,5 @@
     "plugin-dev@claude-plugins-official": true,
     "chrome-devtools-mcp@claude-plugins-official": true,
     "frontend-design@claude-plugins-official": true
-  },
-  "alwaysThinkingEnabled": true
+  }
 }
