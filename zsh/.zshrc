@@ -21,7 +21,7 @@ if (( $+commands[fnm] )) && {
 }; then
   eval "$(fnm env --shell zsh)"
 fi
-_fnm_sync_node_path
+(( $+functions[_fnm_sync_node_path] )) && _fnm_sync_node_path
 
 # Load secrets
 [ -f ~/.secrets ] && source ~/.secrets
@@ -225,7 +225,7 @@ if (( $+commands[fnm] )); then
   _fnm_autoload_hook() {
     if [[ -f .node-version || -f .nvmrc || -f package.json ]]; then
       fnm use --silent-if-unchanged
-      _fnm_sync_node_path
+      (( $+functions[_fnm_sync_node_path] )) && _fnm_sync_node_path
     fi
   }
   add-zsh-hook chpwd _fnm_autoload_hook
