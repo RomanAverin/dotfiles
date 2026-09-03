@@ -21,7 +21,7 @@ stow tmux vim startship zsh
 
 ### Zsh PATH
 
-Keep all `PATH` setup in `zsh/.zprofile`, not `.zshrc`, so the login shell configures the environment before tmux starts. Restart the tmux server after changing it.
+Keep static `PATH` setup in `zsh/.zshenv`, not `.zshrc`, so every zsh invocation sees it. Login shells initialize the selected Node.js version through `fnm` in `zsh/.zprofile`; restart the tmux server after changing that environment.
 
 ## Neovim configurations in a separate repository
 

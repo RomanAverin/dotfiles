@@ -49,5 +49,26 @@ _path_prepend "$HOME/.opencode/bin"
 _path_prepend "${XDG_DATA_HOME:-$HOME/.local/share}/mise/shims"
 _path_prepend /opt/nvim-linux-x86_64/bin
 
+# Keep fnm's multishell and the physical installation directory synchronized.
+# The multishell must win command lookup for `fnm use`; npm doctor additionally
+# requires the physical `installation/bin` directory to be present in PATH.
+_fnm_sync_node_path() {
+  local installation_bin
+
+  path=(${path:#*/fnm_multishells/*/bin})
+  path=(${path:#*/fnm/node-versions/*/installation/bin})
+
+  if [[ -n ${FNM_MULTISHELL_PATH:-} && -d "$FNM_MULTISHELL_PATH/bin" ]]; then
+    installation_bin="${FNM_MULTISHELL_PATH:A}/bin"
+    [[ -d "$installation_bin" ]] && path=(
+      "$FNM_MULTISHELL_PATH/bin"
+      "$installation_bin"
+      $path
+    )
+  fi
+}
+
+_fnm_sync_node_path
+
 unset -f _path_prepend _path_append
 unset FNM_PATH

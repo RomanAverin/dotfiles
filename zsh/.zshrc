@@ -13,11 +13,15 @@ if [[ "$ZSH_BENCHMARK" == "Yes" ]]; then
 fi
 
 # A non-login interactive shell skips .zprofile, so initialize its fnm
-# multishell here. Login shells inherit FNM_MULTISHELL_PATH from .zprofile and
-# avoid creating a second multishell.
-if (( $+commands[fnm] )) && [[ -z ${FNM_MULTISHELL_PATH:-} ]]; then
+# multishell here. Also recover from an inherited path that became stale, for
+# example when attaching to a tmux server left over from an earlier session.
+if (( $+commands[fnm] )) && {
+  [[ -z ${FNM_MULTISHELL_PATH:-} ]] ||
+  [[ ! -x "$FNM_MULTISHELL_PATH/bin/node" ]]
+}; then
   eval "$(fnm env --shell zsh)"
 fi
+_fnm_sync_node_path
 
 # Load secrets
 [ -f ~/.secrets ] && source ~/.secrets
@@ -221,6 +225,7 @@ if (( $+commands[fnm] )); then
   _fnm_autoload_hook() {
     if [[ -f .node-version || -f .nvmrc || -f package.json ]]; then
       fnm use --silent-if-unchanged
+      _fnm_sync_node_path
     fi
   }
   add-zsh-hook chpwd _fnm_autoload_hook
