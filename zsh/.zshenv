@@ -22,9 +22,15 @@ path=(
   $path
 )
 
-# Add fnm itself early. The selected Node.js version is initialized later by
-# .zprofile for login shells or .zshrc for interactive non-login shells.
-FNM_PATH="${XDG_DATA_HOME:-$HOME/.local/share}/fnm"
+# Add fnm itself early. Its installer keeps using ~/.fnm when that directory
+# already exists, including on hosts that predate the XDG installation path.
+# The selected Node.js version is initialized later by .zprofile for login
+# shells or .zshrc for interactive non-login shells.
+if [[ -d "$HOME/.fnm" ]]; then
+  FNM_PATH="$HOME/.fnm"
+else
+  FNM_PATH="${XDG_DATA_HOME:-$HOME/.local/share}/fnm"
+fi
 _path_prepend "$FNM_PATH"
 
 # Golang
@@ -59,7 +65,8 @@ _fnm_sync_node_path() {
   path=(${path:#*/fnm/node-versions/*/installation/bin})
 
   if [[ -n ${FNM_MULTISHELL_PATH:-} && -d "$FNM_MULTISHELL_PATH/bin" ]]; then
-    installation_bin="${FNM_MULTISHELL_PATH:A}/bin"
+    installation_bin="${FNM_MULTISHELL_PATH}/bin"
+    installation_bin="${installation_bin:A}"
     [[ -d "$installation_bin" ]] && path=(
       "$FNM_MULTISHELL_PATH/bin"
       "$installation_bin"
