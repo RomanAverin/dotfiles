@@ -134,6 +134,8 @@ zinit wait'1' lucid for \
     # atload'!_zsh_autosuggest_start' \
     # zsh-users/zsh-autosuggestions
 
+# Keep Tab for fzf-tab completion; use Ctrl+N to cycle deja suggestions.
+export DEJA_CYCLE_KEY='^N'
 zinit ice wait"0" lucid depth=1 pick"deja.plugin.zsh"
 zinit light Giammarco-Ferranti/deja
 
@@ -294,9 +296,3 @@ fi
 eval "$(codex completion zsh)"
 fpath=(~/.zsh/completions $fpath)
 autoload -U compinit && compinit
-
-if [[ -r "$HOME/.local/share/deja/init.zsh" ]]; then
-  source "$HOME/.local/share/deja/init.zsh"
-else
-  eval "$(deja init zsh)"
-fi
