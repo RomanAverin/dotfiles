@@ -131,8 +131,11 @@ zinit wait lucid for \
 zinit wait'1' lucid for \
     atload'zicdreplay' \
     zdharma-continuum/fast-syntax-highlighting \
-    atload'!_zsh_autosuggest_start' \
-    zsh-users/zsh-autosuggestions
+    # atload'!_zsh_autosuggest_start' \
+    # zsh-users/zsh-autosuggestions
+
+zinit ice wait"0" lucid depth=1 pick"deja.plugin.zsh"
+zinit light Giammarco-Ferranti/deja
 
 # Completion styling
 zstyle ':completion:*:git-checkout:*' sort false # disable sort when completing `git checkout`
@@ -291,3 +294,9 @@ fi
 eval "$(codex completion zsh)"
 fpath=(~/.zsh/completions $fpath)
 autoload -U compinit && compinit
+
+if [[ -r "$HOME/.local/share/deja/init.zsh" ]]; then
+  source "$HOME/.local/share/deja/init.zsh"
+else
+  eval "$(deja init zsh)"
+fi
