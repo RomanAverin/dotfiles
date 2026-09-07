@@ -136,7 +136,27 @@ zinit wait'1' lucid for \
 
 # Keep Tab for fzf-tab completion; use Ctrl+N to cycle deja suggestions.
 export DEJA_CYCLE_KEY='^N'
-zinit ice wait"0" lucid depth=1 pick"deja.plugin.zsh"
+
+# Keep Alt+F accepting one suggestion word without sending forward-word through
+# deja and fast-syntax-highlighting's nested wrappers twice.
+_deja_alt_f_forward_word() {
+    zle .forward-word -- "$@"
+}
+
+_deja_alt_f_partial_accept() {
+    _deja_widget_partial_accept .deja-alt-f-forward-word "$@"
+}
+
+_configure_deja_alt_f() {
+    zle -N .deja-alt-f-forward-word _deja_alt_f_forward_word
+    zle -N deja-alt-f-partial-accept _deja_alt_f_partial_accept
+    (( ${DEJA_IGNORE_WIDGETS[(Ie)deja-alt-f-partial-accept]} )) || \
+        DEJA_IGNORE_WIDGETS+=(deja-alt-f-partial-accept)
+    bindkey '^[f' deja-alt-f-partial-accept
+}
+
+zinit ice wait"0" lucid depth=1 pick"deja.plugin.zsh" \
+    atload'_configure_deja_alt_f'
 zinit light Giammarco-Ferranti/deja
 
 # Completion styling
