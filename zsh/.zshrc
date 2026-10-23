@@ -89,6 +89,26 @@ reset-cursor() {
 }
 precmd_functions+=(reset-cursor)
 
+# OSC 133 command marks for tmux 3.8 events (pane-command-finished etc.).
+# Ghostty emits its own marks outside tmux, so only do this inside tmux.
+if [[ -n $TMUX ]]; then
+  _osc133_preexec() {
+    _osc133_running=1
+    print -n '\e]133;C\a'
+  }
+  _osc133_precmd() {
+    local st=$?
+    if (( _osc133_running )); then
+      print -n "\e]133;D;$st\a"
+      _osc133_running=0
+    fi
+    print -n '\e]133;A\a'
+  }
+  # Run first so $? is still the status of the finished command
+  precmd_functions=(_osc133_precmd $precmd_functions)
+  preexec_functions+=(_osc133_preexec)
+fi
+
 # Add Starship
 zinit ice as"command" from"gh-r" \
           atclone"./starship init zsh > init.zsh; ./starship completions zsh > _starship" \
