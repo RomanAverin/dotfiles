@@ -1,13 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
-  "model": "opus",
-  "fallbackModel": [
-    "claude-sonnet-5"
-  ],
-  "effortLevel": "high",
-  "tui": "fullscreen",
   "permissions": {
-    "defaultMode": "default",
     "allow": [
       "Bash(pnpm:*)",
       "Bash(git:*)",
@@ -17,11 +10,8 @@
       "Read(repos/**)",
       "Edit(repos/**)",
       "Read(./.env.example)",
-      "Edit(./.env.example)"
-    ],
-    "ask": [
-      "Bash(git push:*)",
-      "Bash(git reset --hard:*)"
+      "Edit(./.env.example)",
+      "mcp__pencil"
     ],
     "deny": [
       "Read(./.env)",
@@ -32,12 +22,16 @@
       "Edit(.env.local)",
       "Bash(rm -rf:*)",
       "Bash(sudo:*)"
-    ]
+    ],
+    "ask": [
+      "Bash(git push:*)",
+      "Bash(git reset --hard:*)"
+    ],
+    "defaultMode": "default"
   },
-  "sandbox": {
-    "enabled": true,
-    "autoAllowBashIfSandboxed": true
-  },
+  "fallbackModel": [
+    "claude-sonnet-5"
+  ],
   "statusLine": {
     "type": "command",
     "command": "bash /home/rastler/.claude/statusline-command.sh"
@@ -50,6 +44,19 @@
     "chrome-devtools-mcp@claude-plugins-official": true,
     "frontend-design@claude-plugins-official": true
   },
+  "sandbox": {
+    "enabled": true,
+    "autoAllowBashIfSandboxed": true,
+    "network": {
+      "allowedDomains": [
+        "git.cly.pw"
+      ]
+    }
+  },
+  "effortLevel": "high",
+  "tui": "fullscreen",
+  "theme": "dark",
+  "agentPushNotifEnabled": true,
   "hooks": {
     "Stop": [
       {
