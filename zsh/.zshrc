@@ -235,10 +235,10 @@ export XDG_CONFIG_HOME=$HOME/.config
 # export ARCHFLAGS="-arch x86_64"
 
 ### Aliases
-# Some alias
-function s() {
-  wezterm cli spawn --domain-name SSH:$1
-}
+#
+# Plain OpenSSH for network devices
+alias netssh='/usr/bin/ssh'
+
 alias fix_compinit_insecure_dirs="_fix_compinit_insecure_dirs"
 alias remove_nvim_folders="rm -rf ~/.local/share/nvim ~/.local/state/nvim ~/.cache/nvim"
 alias ls="ls --color"
@@ -313,6 +313,12 @@ if [ -f '$HOME/yandex-cloud/completion.zsh.inc' ]; then source '$HOME/yandex-clo
 # Activate mise
 [ -f "$HOME/.local/bin/mise" ] && eval "$($HOME/.local/bin/mise activate zsh)"
 
+# Ghostty shell integration.
+# Load explicitly because the interactive shell normally runs inside tmux.
+if [[ -n "$GHOSTTY_RESOURCES_DIR" ]]; then
+    source "$GHOSTTY_RESOURCES_DIR/shell-integration/zsh/ghostty-integration"
+fi
+
 # ============================================================================
 # ZSH Benchmark Report (if enabled)
 # ============================================================================
@@ -336,3 +342,5 @@ fi
 eval "$(codex completion zsh)"
 fpath=(~/.zsh/completions $fpath)
 autoload -U compinit && compinit
+
+
